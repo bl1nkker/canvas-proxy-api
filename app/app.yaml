@@ -1,0 +1,28 @@
+# Database settings
+DB_HOST: 127.0.0.1
+DB_PORT: 5432
+
+DB_USER: bl1nkker
+DB_PASS: bl1nkker
+DB_NAME: canvas_proxy
+
+DB_TEST_USER: bl1nkker_test
+DB_TEST_PASS: bl1nkker_test
+DB_TEST_NAME: canvas_proxy_test
+
+DB_POSTGRES_USER: postgres
+DB_POSTGRES_PASS: bl1nkker
+DB_POSTGRES_NAME: postgres
+
+# Redis settings
+REDIS_HOST: 127.0.0.1
+REDIS_DATABASE: 0
+
+# File storage settings
+TEST_DATA_PATH: $PROJECT/_test_files
+# ! TODO: Add proper organisation name
+FILE_STORAGE_PATH: $HOME/.<org-name>/canvas-proxy-api/files
+FILE_STORAGE_PATH_TEST: $HOME/.<org-name>/canvas-proxy-api/test_files
+
+# Log settings
+LOG_LEVEL: DEBUG
