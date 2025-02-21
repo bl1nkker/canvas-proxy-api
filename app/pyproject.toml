@@ -3,14 +3,21 @@ name = "canvas-proxy-api"
 version = "0.1.0"
 description = ""
 authors = ["bl1nkker <nurovich14@gmail.com>"]
-readme = "README.md"
+
+packages = [
+    { include = "src" }
+]
 
 [tool.poetry.dependencies]
 python = "^3.11"
 sqlalchemy = "^2.0.38"
 fastapi = "^0.115.8"
+cleo = "^0.8.1"
 
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+db-init = "cli:main"
