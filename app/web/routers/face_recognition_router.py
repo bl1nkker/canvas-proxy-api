@@ -15,9 +15,11 @@ def get_service(db_session: Annotated[Session, Depends(get_db_session)]):
 
 @router.post("/")
 async def recognize_face(
+    web_id: str,
     service: Annotated[FaceRecognitionService, Depends(get_service)]
 ):
-    return None
+    result = service.recognize_face(web_id=web_id)
+    return result
 
 
 @router.post("/hello")

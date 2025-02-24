@@ -34,8 +34,9 @@ alembic revision --autogenerate -m "<message>"
 
 ## TODOS:
 
-1. add get_app_config callable
-2. setup db configuration (redis included)
+1. Add vectorized database (pgvector or milvus)
+
+
 6. write tests for all of the above shit
 7. write ci/cd for github actions (tests, flake + publish_project (maybe for public sources like pypi, discuss with Timur))
 8. write Dockerfile
