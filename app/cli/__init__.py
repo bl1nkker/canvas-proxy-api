@@ -5,7 +5,6 @@ from cli.dbdrop import DbDropCommand
 
 
 def main():
-    print("Hello")
     application = Application()
     application.add(DbDropCommand())
     application.add(DbInitCommand())
