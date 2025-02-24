@@ -5,10 +5,10 @@ from sqlalchemy.engine.base import Engine
 
 from db.session import Session
 from web.middlewares.log_middleware import LogsMiddleware
-from web.errors.types import ValidationError, InvalidTokenError
+from src.errors.types import ValidationError, InvalidTokenError
 from web.errors.handler import generate_default_error_handler
 
-# from ml import lifespan
+from ml import lifespan
 
 
 def create_web_application(
@@ -16,8 +16,7 @@ def create_web_application(
     errors_mapping: dict[Type[Exception], int] | None = None,
 ) -> FastAPI:
     Session.configure(bind=db_engine)
-    # app = FastAPI(lifespan=lifespan)
-    app = FastAPI()
+    app = FastAPI(lifespan=lifespan)
     app.add_middleware(LogsMiddleware)
     app.add_middleware(
         CORSMiddleware,

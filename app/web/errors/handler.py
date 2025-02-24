@@ -8,9 +8,9 @@ from pydantic import ValidationError as PydanticValidationError
 from fastapi import Request, status
 
 from web.errors.http_core_error import HttpCoreError
-from web.errors.core_errors import CoreErrors
-from web.errors.types import ValidationError
-from web.errors.base_error import BaseError
+from src.errors.core_errors import CoreErrors
+from src.errors.base_error import BaseError
+from src.errors.types import ValidationError
 
 
 

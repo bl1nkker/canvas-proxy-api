@@ -1,7 +1,7 @@
 from fastapi.responses import JSONResponse
 
-from web.errors.core_errors import CoreErrors
-from web.errors.base_error import BaseError
+from src.errors.core_errors import CoreErrors
+from src.errors.base_error import BaseError
 
 
 class HttpCoreError(JSONResponse):
