@@ -21,8 +21,8 @@ REDIS_DATABASE: 0
 # File storage settings
 TEST_DATA_PATH: $PROJECT/_test_files
 # ! TODO: Add proper organisation name
-FILE_STORAGE_PATH: $HOME/.<org-name>/canvas-proxy-api/files
-FILE_STORAGE_PATH_TEST: $HOME/.<org-name>/canvas-proxy-api/test_files
+FILE_STORAGE_PATH: $HOME/.bl1nkker/canvas-proxy-api/files
+FILE_STORAGE_PATH_TEST: $HOME/.bl1nkker/canvas-proxy-api/test_files
 
 # Log settings
 LOG_LEVEL: DEBUG

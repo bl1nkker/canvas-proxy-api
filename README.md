@@ -27,6 +27,11 @@ poetry install --no-root
 cd app/web && poetry run python api.py
 ```
 
+### Create Alembic Migration:
+```
+alembic revision --autogenerate -m "<message>"
+```
+
 ## TODOS:
 
 1. add get_app_config callable
