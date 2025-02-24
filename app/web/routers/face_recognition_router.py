@@ -6,7 +6,7 @@ from src.services.service_factory import service_factory
 from src.services.face_recognition_service import FaceRecognitionService
 from web.depends.db import get_db_session
 
-router = APIRouter(prefix="/face-recognition", tags=["Face Recognition"])
+router = APIRouter(prefix="/api/face-recognition/v1", tags=["Face Recognition"])
 
 
 def get_service(db_session: Annotated[Session, Depends(get_db_session)]):
