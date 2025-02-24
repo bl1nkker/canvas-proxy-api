@@ -1,21 +1,24 @@
-from typing import Type, Any
-
-from fastapi import FastAPI
-
-# from db.session import Session
-from starlette.middleware.base import BaseHTTPMiddleware
+from typing import Type
+from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.engine.base import Engine
+
+from db.session import Session
+from web.middlewares.log_middleware import LogsMiddleware
+from web.errors.types import ValidationError, InvalidTokenError
+from web.errors.handler import generate_default_error_handler
+
+# from ml import lifespan
 
 
 def create_web_application(
-    app: FastAPI | None = None,
+    db_engine: Engine,
     errors_mapping: dict[Type[Exception], int] | None = None,
-    middlewares: tuple[tuple[BaseHTTPMiddleware, dict]] | None = None,
-    **kwargs: Any,
 ) -> FastAPI:
-    # Session.configure(bind=db_engine)
-    if app is None:
-        app = FastAPI(**kwargs)
+    Session.configure(bind=db_engine)
+    # app = FastAPI(lifespan=lifespan)
+    app = FastAPI()
+    app.add_middleware(LogsMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
@@ -23,4 +26,11 @@ def create_web_application(
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    em: dict[Type[Exception], int] = {
+        ValidationError: status.HTTP_400_BAD_REQUEST,
+        InvalidTokenError: status.HTTP_401_UNAUTHORIZED,
+    }
+    em.update(errors_mapping or dict())
+    app.add_exception_handler(Exception, generate_default_error_handler(em))
     return app
