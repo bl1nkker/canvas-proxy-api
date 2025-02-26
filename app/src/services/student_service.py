@@ -80,3 +80,20 @@ class StudentService:
             )
             self._student_vector_repo.save_or_update(vector)
         return student_dto.Read.from_dbmodel(student)
+
+    def search_student_by_image(
+        self, name: str, content_type: str, stream: io.BufferedReader
+    ) -> student_dto.Read:
+        metadata = self._upload_service.create_upload(
+            name=name, content_type=content_type, stream=stream
+        )
+        image_embed = face_encoder.get_image_embedding(
+            image_path=metadata.path, content_type=metadata.content_type
+        )
+        with self._student_vector_repo.session():
+            image = self._student_vector_repo.search_by_embedding(embedding=image_embed)
+        if not image:
+            raise NotFoundError(message="_error_msg_student_not_found")
+        with self._student_repo.session():
+            student = self._student_repo.get_by_db_id(db_id=image.student_id)
+        return student_dto.Read.from_dbmodel(student)

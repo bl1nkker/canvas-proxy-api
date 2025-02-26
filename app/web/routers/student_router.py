@@ -1,3 +1,4 @@
+from functools import partial
 from typing import Annotated
 from fastapi import APIRouter, Depends, status, Body, UploadFile, File
 from fastapi.encoders import jsonable_encoder
@@ -53,14 +54,37 @@ async def save_student(
         status_code=status.HTTP_201_CREATED, content=jsonable_encoder(dto)
     )
 
-@router.post("/{web_id}/image", dependencies=[Depends(validate_content_type)])
+
+@router.post(
+    "/{web_id}/image",
+    dependencies=[Depends(partial(validate_content_type, ["image/jpeg"]))],
+)
 async def save_student_image(
     web_id: str,
     service: Annotated[StudentService, Depends(get_service)],
     file: UploadFile = File(...),
 ):
     dto = service.save_student_image(
-        web_id=web_id, name=file.filename, content_type=file.content_type, stream=file.file
+        web_id=web_id,
+        name=file.filename,
+        content_type=file.content_type,
+        stream=file.file,
+    )
+    return JSONResponse(
+        status_code=status.HTTP_201_CREATED, content=jsonable_encoder(dto)
+    )
+
+
+@router.post(
+    "/search",
+    dependencies=[Depends(partial(validate_content_type, ["image/jpeg"]))],
+)
+async def search_student_by_image(
+    service: Annotated[StudentService, Depends(get_service)],
+    file: UploadFile = File(...),
+):
+    dto = service.search_student_by_image(
+        name=file.filename, content_type=file.content_type, stream=file.file
     )
     return JSONResponse(
         status_code=status.HTTP_201_CREATED, content=jsonable_encoder(dto)

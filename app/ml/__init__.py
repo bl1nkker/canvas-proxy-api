@@ -13,6 +13,7 @@ ml_model: MlModel = dict()
 async def lifespan(app: FastAPI):
 
     global ml_model
+    # !This model is for 192 dimensions
     model_path = "ml/mobile_face_net.tflite"
 
     if not os.path.exists(model_path):

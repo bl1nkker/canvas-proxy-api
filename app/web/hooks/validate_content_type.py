@@ -3,8 +3,9 @@ from fastapi import File, UploadFile
 
 
 def validate_content_type(
-    file: UploadFile = File(...), valid_content_types: list[str] = ["image/jpeg"]
+    valid_content_types: list[str] = None, file: UploadFile = File(...)
 ):
+    valid_content_types = valid_content_types or []
     content_type = file.content_type
     if content_type not in valid_content_types:
         expected = ",".join(valid_content_types)
