@@ -1,6 +1,6 @@
 from sqlalchemy.engine import create_engine
 
-from routers import face_recognition_router, upload_router
+from routers import face_recognition_router, upload_router, student_router
 
 from log import configure_logging
 from db.config import get_db_config
@@ -15,6 +15,7 @@ def create_app():
     app = create_web_application(db_engine=db_engine)
     app.include_router(face_recognition_router.router)
     app.include_router(upload_router.router)
+    app.include_router(student_router.router)
     return app
 
 
