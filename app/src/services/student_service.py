@@ -1,6 +1,11 @@
+import io
 import shortuuid
 
 from db.data_repo import Pagination
+from ml import face_encoder
+from src.errors.types import NotFoundError
+from src.models.student_vector import StudentVector
+from src.services.upload_service import UploadService
 from src.repositories.student_repo import StudentRepo
 from src.repositories.student_vector_repo import StudentVectorRepo
 from src.models.student import Student
@@ -8,11 +13,16 @@ from src.dto import student_dto
 
 
 class StudentService:
+
     def __init__(
-        self, student_repo: StudentRepo, student_vector_repo: StudentVectorRepo
+        self,
+        student_repo: StudentRepo,
+        student_vector_repo: StudentVectorRepo,
+        upload_service: UploadService,
     ):
         self._student_repo = student_repo
         self._student_vector_repo = student_vector_repo
+        self._upload_service = upload_service
 
     def list_students(
         self, page=1, page_size=10, order_by="id", asc=True
@@ -47,5 +57,26 @@ class StudentService:
             self._student_repo.save_or_update(student)
         return student_dto.Read.from_dbmodel(student)
 
-    def save_student_vector(self):
-        pass
+    def save_student_image(
+        self,
+        web_id: str,
+        name: str,
+        content_type: str,
+        stream: io.BufferedReader,
+    ) -> student_dto.Read:
+        with self._student_repo.session():
+            student = self._student_repo.get_by_web_id(web_id=web_id)
+        if not student:
+            raise NotFoundError(message=f"_error_msg_student_not_found: {web_id}")
+        metadata = self._upload_service.create_upload(
+            name=name, content_type=content_type, stream=stream
+        )
+        image_embed = face_encoder.get_image_embedding(
+            image_path=metadata.path, content_type=metadata.content_type
+        )
+        with self._student_vector_repo.session():
+            vector = StudentVector(
+                student_id=student.id, embedding=image_embed, web_id=shortuuid.uuid()
+            )
+            self._student_vector_repo.save_or_update(vector)
+        return student_dto.Read.from_dbmodel(student)

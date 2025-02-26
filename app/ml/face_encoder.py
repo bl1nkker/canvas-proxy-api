@@ -49,3 +49,7 @@ def image_to_bytes_cv2(image_path: str, content_type: str) -> bytes:
 def image_to_bytes(image_path: str) -> bytes:
     with open(image_path, "rb") as f:
         return f.read()
+
+def get_image_embedding(image_path: str, content_type: str) -> np.ndarray:
+    b = image_to_bytes(image_path=image_path)
+    return get_face_embedding(image=b)

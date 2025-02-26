@@ -18,6 +18,12 @@ class InvalidTokenError(BaseError):
     def __init__(self, code: str):
         super().__init__(message="_error_msg_invalid_auth_token", code=code)
 
+
 class NotFoundError(BaseError):
     def __init__(self, message: str, code: str = CoreErrors.NOT_FOUND.value):
         super().__init__(message=message, code=code)
+
+
+class InvalidContentTypeError(BaseError):
+    def __init__(self, message: str):
+        super().__init__(message=message, code=CoreErrors.INVALID_CONTENT_TYPE.value)

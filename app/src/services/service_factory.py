@@ -33,11 +33,12 @@ class ServiceFactory:
             student_repo=self.student_repo(db_session=db_session),
             student_vector_repo=self.student_vector_repo(db_session=db_session),
         )
-    
+
     def student_service(self, db_session):
         return StudentService(
             student_repo=self.student_repo(db_session=db_session),
-            student_vector_repo=self.student_vector_repo(db_session=db_session)
+            student_vector_repo=self.student_vector_repo(db_session=db_session),
+            upload_service=self.upload_service(db_session=db_session),
         )
 
 
