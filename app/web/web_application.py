@@ -5,7 +5,7 @@ from sqlalchemy.engine.base import Engine
 
 from db.session import Session
 from web.middlewares.log_middleware import LogsMiddleware
-from src.errors.types import ValidationError, InvalidTokenError
+from src.errors.types import InvalidContentTypeError, NotFoundError, ValidationError, InvalidTokenError
 from web.errors.handler import generate_default_error_handler
 
 from ml import lifespan
@@ -29,6 +29,8 @@ def create_web_application(
     em: dict[Type[Exception], int] = {
         ValidationError: status.HTTP_400_BAD_REQUEST,
         InvalidTokenError: status.HTTP_401_UNAUTHORIZED,
+        InvalidContentTypeError: status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+        NotFoundError: status.HTTP_404_NOT_FOUND,
     }
     em.update(errors_mapping or dict())
     app.add_exception_handler(Exception, generate_default_error_handler(em))
