@@ -27,6 +27,7 @@ pillow = "^11.1.0"
 ai-edge-litert = "^1.1.2"
 opencv-python = "^4.11.0.86"
 shortuuid = "^1.0.13"
+pgvector = "^0.3.6"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

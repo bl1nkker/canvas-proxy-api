@@ -22,9 +22,13 @@ def preprocess_image(image: bytes) -> np.ndarray:
     return img
 
 
-def get_face_encoding(image: bytes) -> np.ndarray:
+def get_face_embedding(image: bytes) -> np.ndarray:
     img = preprocess_image(image)
-    interpreter, input_details, output_details = ml_model["interpreter"], ml_model["input_details"], ml_model["output_details"]
+    interpreter, input_details, output_details = (
+        ml_model["interpreter"],
+        ml_model["input_details"],
+        ml_model["output_details"],
+    )
     interpreter.set_tensor(input_details[0]["index"], img)
     interpreter.invoke()
     encoding = interpreter.get_tensor(output_details[0]["index"])
