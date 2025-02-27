@@ -9,6 +9,8 @@ services:
       - postgres-data:/var/lib/postgresql/data
     environment:
       - POSTGRES_PASSWORD=bl1nkker
+    networks:
+      - apps
 
   redis:
     image: redis:5.0.7
@@ -20,7 +22,41 @@ services:
     sysctls:
       - net.core.somaxconn=511
     command: redis-server /usr/local/etc/redis/redis.conf
+    networks:
+      - apps
+  
+  api:
+    image: blinkker/canvas-proxy-api:latest
+    command: api
+    depends_on:
+      - postgresql
+      - redis
+    ports:
+      - "8010:8000"
+      - "28888:8888"
+    environment:
+      DB_HOST: postgresql
+      DB_PORT: 5432
+    networks:
+      - apps
+
+  dbinit:
+    image: blinkker/canvas-proxy-api:latest
+    command: dbinit
+    depends_on:
+      - postgresql
+      - redis
+    environment:
+      DB_HOST: postgresql
+      DB_PORT: 5432
+    networks:
+      - apps
+
 
 volumes:
   postgres-data:
   redis-data:
+
+networks:
+  apps:
+    driver: bridge
