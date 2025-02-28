@@ -26,3 +26,5 @@ FILE_STORAGE_PATH_TEST: $HOME/.bl1nkker/canvas-proxy-api/test_files
 
 # Log settings
 LOG_LEVEL: DEBUG
+
+CANVAS_DOMAIN: https://canvas.narxoz.kz

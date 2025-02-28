@@ -1,3 +1,4 @@
+from src.services.auth_service import AuthService
 from src.services.student_service import StudentService
 from src.repositories.student_repo import StudentRepo
 from src.repositories.student_vector_repo import StudentVectorRepo
@@ -40,6 +41,9 @@ class ServiceFactory:
             student_vector_repo=self.student_vector_repo(db_session=db_session),
             upload_service=self.upload_service(db_session=db_session),
         )
+    
+    def auth_service(self):
+        return AuthService()
 
 
 _service_factory = ServiceFactory()
