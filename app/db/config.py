@@ -18,8 +18,8 @@ class DbConfig(BaseModel):
     app_db_pass: str
     app_db_name: str
 
-    def postgres_url(self):
-        return f"postgresql://{self.postgres_db_user}:{self.postgres_db_pass}@{self.host}:{self.port}"
+    def postgres_url(self, for_app_db: bool = False):
+        return f"postgresql://{self.postgres_db_user}:{self.postgres_db_pass}@{self.host}:{self.port}{f'/{self.app_db_name}' if for_app_db else ''}"
 
     def app_url(self):
         return f"postgresql://{self.app_db_user}:{self.app_db_pass}@{self.host}:{self.port}/{self.app_db_name}"
