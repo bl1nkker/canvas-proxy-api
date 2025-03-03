@@ -100,3 +100,23 @@ class TestCanvasUserRepo(BaseTest):
         with canvas_user_repo.session():
             users = canvas_user_repo.list_all()
             assert len(users) == 0
+
+    def test_get_by_user_id(self, sample_canvas_user, canvas_user_repo, cleanup_all):
+        with canvas_user_repo.session():
+            user = sample_canvas_user(username="test@gmail.com")
+            created_user = canvas_user_repo.save_or_update(user)
+            for i in range(5):
+                user = sample_canvas_user(
+                    username=f"test_{i}@gmail.com",
+                    web_id=f"web-id-{2 + i}",
+                    canvas_id=f"canvas-id-{2 + i}",
+                )
+                canvas_user_repo.save_or_update(user)
+
+        with canvas_user_repo.session():
+            users = canvas_user_repo.list_all()
+            assert len(users) == 6
+            user = canvas_user_repo.get_by_user_id(user_id=created_user.user_id)
+            assert user is not None
+            # beacuse of "_canvas" prefix
+            assert user.username == "canvas_test@gmail.com"

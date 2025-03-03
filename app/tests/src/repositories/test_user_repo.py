@@ -65,3 +65,20 @@ class TestUserRepo(BaseTest):
         with user_repo.session():
             users: list[User] = user_repo.list_all()
             assert len(users) == 0
+
+    def test_get_by_username(self, sample_user, user_repo, cleanup_all):
+        with user_repo.session():
+            user = sample_user(username="test@gmail.com")
+            user_repo.save_or_update(user)
+            for i in range(5):
+                user = sample_user(
+                    username=f"test_{i}@gmail.com", web_id=f"web-id-{2 + i}"
+                )
+                user_repo.save_or_update(user)
+
+        with user_repo.session():
+            users = user_repo.list_all()
+            assert len(users) == 6
+            user = user_repo.get_by_username(username="test@gmail.com")
+            assert user is not None
+            assert user.username == "test@gmail.com"
