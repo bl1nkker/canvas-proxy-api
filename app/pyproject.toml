@@ -74,7 +74,7 @@ line-ending = "auto"
 
 [tool.pytest.ini_options]
 addopts = "-vvv --cov"
-testpaths = ["ms_pipelines_tests"]
+testpaths = ["tests"]
 
 [tool.poetry.scripts]
 cli = "cli:main"
