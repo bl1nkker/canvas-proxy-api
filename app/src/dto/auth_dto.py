@@ -19,4 +19,5 @@ class CanvasAuthData(BaseModel):
 class UserData(BaseModel):
     username: str
     web_id: str
+    id: int
     canvas_auth_data: CanvasAuthData | None

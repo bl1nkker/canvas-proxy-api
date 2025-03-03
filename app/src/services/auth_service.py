@@ -74,5 +74,8 @@ class AuthService:
             )
         )
         return auth_dto.UserData(
-            username=user.username, web_id=user.web_id, canvas_auth_data=auth_data
+            username=user.username,
+            web_id=user.web_id,
+            canvas_auth_data=auth_data,
+            id=user.id,
         )

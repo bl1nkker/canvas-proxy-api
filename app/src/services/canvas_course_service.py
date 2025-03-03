@@ -2,6 +2,7 @@ import shortuuid
 
 from db.data_repo import Pagination
 from src.dto import canvas_course_dto
+from src.errors.types import NotFoundError
 from src.models.canvas_course import CanvasCourse
 from src.proxies.canvas_proxy_provider import CanvasProxyProvider
 from src.repositories.canvas_course_repo import CanvasCourseRepo
@@ -59,6 +60,10 @@ class CanvasCourseService:
         canvas_courses: list[canvas_course_dto.Read] = (
             await self._canvas_proxy_provider.get_courses(dto.canvas_auth_data)
         )
+        with self._canvas_user_repo.session():
+            canvas_user = self._canvas_user_repo.get_by_user_id(user_id=dto.user_id)
+            if canvas_user is None:
+                raise NotFoundError(message=f"error_msg_user_not_found: {dto.user_id}")
         created_courses = []
         with self._canvas_course_repo.session():
             for course in canvas_courses:
@@ -75,7 +80,7 @@ class CanvasCourseService:
                     original_name=course.original_name,
                     course_code=course.course_code,
                     canvas_course_id=course.course_id,
-                    canvas_user_id=dto.canvas_user_id,
+                    canvas_user_id=canvas_user.id,
                 )
                 created_courses.append(
                     self._canvas_course_repo.save_or_update(canvas_course)

@@ -43,7 +43,7 @@ class ListRead(Read):
 
 
 class LoadCourse(BaseModel):
-    canvas_user_id: int
+    user_id: int
     canvas_auth_data: auth_dto.CanvasAuthData
 
 
