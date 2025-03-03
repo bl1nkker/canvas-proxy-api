@@ -1,11 +1,9 @@
-forecast_metrics = {
-    "mean_absolute_error": 3.152254614653507,
-    "root_mean_squared_error": 4.154029821984269,
-    "r2_score": -0.4307099574630002,
-    "precentage error %": 8.33822534683933,
-    "mean_absolute_percentage_error": 8.632614624428406,
+canvas_ok_data = {
+    "_csrf_token": "6D2%2FyVAKZOxBRl6qZW",
+    "_legacy_normandy_session": "pG-loNiNeyypme8vr5TO",
+    "_normandy_session": "pG-loNiNeyypme8vr5TO",
+    "log_session_id": "9f8187d804aaf1d15913",
 }
-
 plot_meta = {
     "name": "test-plot",
     "size": 100,

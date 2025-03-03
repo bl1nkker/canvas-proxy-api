@@ -28,7 +28,7 @@ class AuthService:
             canvas_user = self._canvas_user_repo.get_by_user_id(user_id=user.id)
             if not canvas_user:
                 raise NotFoundError(
-                    message=f"_error_msg_canvas_student_not_found: {user.username}"
+                    message=f"_error_msg_canvas_user_not_found:{user.username}"
                 )
 
         auth_data = await self._canvas_proxy_provider.get_auth_data(

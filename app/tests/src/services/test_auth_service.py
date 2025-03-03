@@ -1,5 +1,4 @@
-from http.cookies import SimpleCookie
-from unittest.mock import AsyncMock, MagicMock, call, patch
+from unittest.mock import call, patch
 
 import pytest
 
@@ -9,27 +8,6 @@ from tests.base_test import BaseTest
 
 
 class TestAuthService(BaseTest):
-    canvas_ok_response = {
-        "_csrf_token": "6D2%2FyVAKZOxBRl6qZW",
-        "_legacy_normandy_session": "pG-loNiNeyypme8vr5TO",
-        "_normandy_session": "pG-loNiNeyypme8vr5TO",
-        "log_session_id": "9f8187d804aaf1d15913",
-    }
-
-    @pytest.fixture
-    def mock_response(self):
-        mock_response = AsyncMock()
-        mock_response.__aenter__.return_value = mock_response
-        mock_response.__aexit__.return_value = None
-
-        mock_cookies = SimpleCookie()
-        for key, value in self.canvas_ok_response.items():
-            mock_cookies[key] = value
-
-        mock_response.cookies = MagicMock()
-        mock_response.cookies.items.return_value = mock_cookies.items()
-
-        return mock_response
 
     @pytest.mark.asyncio
     @patch("aiohttp.ClientSession.get")
@@ -38,15 +16,15 @@ class TestAuthService(BaseTest):
         self,
         mock_post,
         mock_get,
-        mock_response,
+        canvas_ok_response,
         create_canvas_user,
         auth_service,
         cleanup_all,
     ):
         create_canvas_user(username="test@gmail.com", password="test-pwd")
         dto = auth_dto.LoginRequest(username="test@gmail.com", password="test-pwd")
-        mock_get.return_value = mock_response
-        mock_post.return_value = mock_response
+        mock_get.return_value = canvas_ok_response
+        mock_post.return_value = canvas_ok_response
         auth_data = await auth_service.get_canvas_auth_data(dto=dto)
         assert auth_data.dict(by_alias=True) == {
             "_csrf_token": "6D2%2FyVAKZOxBRl6qZW",
