@@ -28,3 +28,4 @@ FILE_STORAGE_PATH_TEST: $HOME/.bl1nkker/canvas-proxy-api/test_files
 LOG_LEVEL: DEBUG
 
 CANVAS_DOMAIN: https://canvas.narxoz.kz
+ENCRYPTION_KEY: Z8qWK_Ce5OOBuISsa2j35UMf6z_a7jkwI3VTAXQj31g=
