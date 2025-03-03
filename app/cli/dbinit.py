@@ -48,6 +48,15 @@ class DbInitCommand(Command):
         # no need to keep engine with postgres permissions anymore
         postgres_engine.dispose()
 
+        # su conn for app db
+        postgres_engine = create_engine(db_config.postgres_url(for_app_db=True), poolclass=NullPool)
+        with postgres_engine.connect() as conn:
+            # Create vector extension
+            conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+            conn.execute(text("COMMIT"))
+
+        postgres_engine.dispose()
+
         app_engine = create_engine(db_config.app_url(), poolclass=NullPool)
         with app_engine.connect() as conn:
             conn.execute(
