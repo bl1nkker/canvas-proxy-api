@@ -6,21 +6,6 @@ from tests.base_test import BaseTest
 
 class TestCanvasUserRepo(BaseTest):
 
-    @pytest.fixture
-    def sample_canvas_user(self, sample_user):
-        def _gen(username="test@gmail.com", web_id="web-id-1", canvas_id="canvas-id-1"):
-            user = sample_user(username=username, web_id=web_id)
-            canvas_user = CanvasUser(
-                user_id=user.id,
-                canvas_id=canvas_id,
-                username=f"canvas_{user.username}",
-                web_id=web_id,
-            )
-            canvas_user.set_password(password="test-pwd")
-            return canvas_user
-
-        return _gen
-
     def test_create_canvas_user(self, sample_user, canvas_user_repo, cleanup_all):
         with canvas_user_repo.session():
             user = sample_user()

@@ -18,6 +18,10 @@ class InvalidTokenError(BaseError):
     def __init__(self, code: str):
         super().__init__(message="_error_msg_invalid_auth_token", code=code)
 
+class InvalidCredentialsError(BaseError):
+    def __init__(self):
+        super().__init__(message="_error_msg_invalid_credentials", code=CoreErrors.AUTH_INVALID_CREDENTIALS)
+
 
 class NotFoundError(BaseError):
     def __init__(self, message: str, code: str = CoreErrors.NOT_FOUND.value):
