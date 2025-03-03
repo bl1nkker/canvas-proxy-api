@@ -15,6 +15,9 @@ class CanvasUser(Base, DbModel, HasWebId):
     encrypted_password = Column(String, nullable=False)
 
     user = relationship("User", back_populates="canvas_user")
+    courses = relationship(
+        "CanvasCourse", back_populates="canvas_user", cascade="all, delete-orphan"
+    )
 
     def set_password(self, password: str):
         self.encrypted_password = encrypt_password(password)

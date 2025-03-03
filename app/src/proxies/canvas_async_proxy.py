@@ -2,7 +2,7 @@ import urllib.parse
 
 import aiohttp
 
-from src.dto import auth_dto, canvas_dto
+from src.dto import auth_dto, canvas_course_dto
 
 
 class CanvasAsyncProxy:
@@ -29,7 +29,9 @@ class CanvasAsyncProxy:
             )
             return auth_dto.CanvasAuthData.model_validate(final_cookies)
 
-    async def get_courses(self, cookies: auth_dto.CanvasAuthData) -> canvas_dto.Course:
+    async def get_courses(
+        self, cookies: auth_dto.CanvasAuthData
+    ) -> canvas_course_dto.Read:
         url = f"{self._canvas_domain}/api/v1/dashboard/dashboard_cards"
         async with aiohttp.ClientSession() as session:
             async with session.get(
@@ -38,7 +40,7 @@ class CanvasAsyncProxy:
                 response.raise_for_status()
                 response_body = await response.json()
                 return [
-                    canvas_dto.Course.model_validate(item) for item in response_body
+                    canvas_course_dto.Read.from_dict(item) for item in response_body
                 ]
 
     async def _get_basic_cookies(

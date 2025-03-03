@@ -7,6 +7,8 @@ import shortuuid
 
 from app_config import AppConfig, get_app_config
 from src.models import CanvasUser, FileRecord, User
+from src.models.canvas_course import CanvasCourse
+from src.repositories.canvas_course_repo import CanvasCourseRepo
 from src.repositories.canvas_user_repo import CanvasUserRepo
 from src.repositories.file_fs_repo import FileFsRepo
 from src.repositories.file_record_repo import FileRecordRepo
@@ -26,6 +28,10 @@ class BaseTest(DbTest, FileFixtures):
     @pytest.fixture
     def file_record_repo(self, db_session):
         return FileRecordRepo(db_session)
+
+    @pytest.fixture
+    def canvas_course_repo(self, db_session):
+        return CanvasCourseRepo(db_session)
 
     @pytest.fixture
     def file_fs_repo(self):
@@ -90,6 +96,12 @@ class BaseTest(DbTest, FileFixtures):
         yield
         with canvas_user_repo.session():
             canvas_user_repo.query(CanvasUser).delete()
+
+    @pytest.fixture
+    def cleanup_canvas_courses(self, canvas_course_repo):
+        yield
+        with canvas_course_repo.session():
+            canvas_course_repo.query(CanvasCourse).delete()
 
     @pytest.fixture
     def sample_user(self) -> User:

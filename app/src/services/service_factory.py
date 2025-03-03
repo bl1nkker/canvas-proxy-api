@@ -1,3 +1,4 @@
+from src.repositories.canvas_course_repo import CanvasCourseRepo
 from src.repositories.canvas_user_repo import CanvasUserRepo
 from src.repositories.file_fs_repo import FileFsRepo
 from src.repositories.file_record_repo import FileRecordRepo
@@ -5,6 +6,7 @@ from src.repositories.student_repo import StudentRepo
 from src.repositories.student_vector_repo import StudentVectorRepo
 from src.repositories.user_repo import UserRepo
 from src.services.auth_service import AuthService
+from src.services.canvas_course_service import CanvasCourseService
 from src.services.face_recognition_service import FaceRecognitionService
 from src.services.student_service import StudentService
 from src.services.upload_service import UploadService
@@ -14,6 +16,9 @@ class ServiceFactory:
 
     def canvas_user_repo(self, db_session):
         return CanvasUserRepo(db_session=db_session)
+
+    def canvas_course_repo(self, db_session):
+        return CanvasCourseRepo(db_session=db_session)
 
     def user_repo(self, db_session):
         return UserRepo(db_session=db_session)
@@ -54,6 +59,12 @@ class ServiceFactory:
         return AuthService(
             canvas_user_repo=self.canvas_user_repo(db_session),
             user_repo=self.user_repo(db_session),
+        )
+
+    def canvas_course_service(self, db_session):
+        return CanvasCourseService(
+            canvas_course_repo=self.canvas_course_repo(db_session),
+            canvas_user_repo=self.canvas_user_repo(db_session),
         )
 
 

@@ -76,7 +76,3 @@ class AuthService:
         return auth_dto.UserData(
             username=user.username, web_id=user.web_id, canvas_auth_data=auth_data
         )
-
-    # async def get_courses(self, dto: auth_dto.LoginRequest) -> canvas_dto.Course:
-    #     courses = await self._canvas_proxy_provider.get_courses(cookies=dto)
-    #     return courses

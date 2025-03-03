@@ -29,10 +29,14 @@ class TestAuthRouter(BaseTest, WebApplicationTest):
         assert response.status_code == 200
         data = response.json()
         assert data == {
-            "_csrf_token": "6D2%2FyVAKZOxBRl6qZW",
-            "_legacy_normandy_session": "pG-loNiNeyypme8vr5TO",
-            "_normandy_session": "pG-loNiNeyypme8vr5TO",
-            "log_session_id": "9f8187d804aaf1d15913",
+            "canvas_auth_data": {
+                "_csrf_token": "6D2%2FyVAKZOxBRl6qZW",
+                "_legacy_normandy_session": "pG-loNiNeyypme8vr5TO",
+                "_normandy_session": "pG-loNiNeyypme8vr5TO",
+                "log_session_id": "9f8187d804aaf1d15913",
+            },
+            "username": "test@gmail.com",
+            "web_id": "web-id-1",
         }
 
     @pytest.mark.asyncio
