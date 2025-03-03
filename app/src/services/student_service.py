@@ -1,15 +1,16 @@
 import io
+
 import shortuuid
 
 from db.data_repo import Pagination
 from ml import face_encoder
+from src.dto import student_dto
 from src.errors.types import NotFoundError
+from src.models.student import Student
 from src.models.student_vector import StudentVector
-from src.services.upload_service import UploadService
 from src.repositories.student_repo import StudentRepo
 from src.repositories.student_vector_repo import StudentVectorRepo
-from src.models.student import Student
-from src.dto import student_dto
+from src.services.upload_service import UploadService
 
 
 class StudentService:

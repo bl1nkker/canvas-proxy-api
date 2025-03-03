@@ -9,7 +9,9 @@ class CanvasAsyncProxy:
     def __init__(self, canvas_domain: str) -> None:
         self._canvas_domain = canvas_domain
 
-    async def get_auth_data(self, username: str, password: str) -> auth_dto.AuthData:
+    async def get_auth_data(
+        self, username: str, password: str
+    ) -> auth_dto.CanvasAuthData:
         """
         Полный процесс аутентификации в Canvas:
         1. Первый GET-запрос для получения базовых cookies.
@@ -25,9 +27,9 @@ class CanvasAsyncProxy:
             final_cookies = await self._perform_login(
                 session, username, password, updated_basic_cookies
             )
-            return auth_dto.AuthData.model_validate(final_cookies)
+            return auth_dto.CanvasAuthData.model_validate(final_cookies)
 
-    async def get_courses(self, cookies: auth_dto.AuthData) -> canvas_dto.Course:
+    async def get_courses(self, cookies: auth_dto.CanvasAuthData) -> canvas_dto.Course:
         url = f"{self._canvas_domain}/api/v1/dashboard/dashboard_cards"
         async with aiohttp.ClientSession() as session:
             async with session.get(

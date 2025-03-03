@@ -23,6 +23,14 @@ async def login(
     return result
 
 
+@router.post("/signup")
+async def signup(
+    dto: auth_dto.LoginRequest, service: Annotated[AuthService, Depends(get_service)]
+):
+    result = await service.create_user(dto=dto)
+    return result
+
+
 @router.post("/courses")
 async def get_courses(
     dto: auth_dto.LoginRequest, service: Annotated[AuthService, Depends(get_service)]

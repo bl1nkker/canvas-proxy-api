@@ -15,3 +15,4 @@ class CoreErrors(str, Enum):
     UNAUTHORIZED = 'unauthorized'
     UNKNOWN = 'unknown'
     VALIDATION = 'validation'
+    INVALID_DATA = "invalid_data"

@@ -6,7 +6,7 @@ class LoginRequest(BaseModel):
     password: str
 
 
-class AuthData(BaseModel):
+class CanvasAuthData(BaseModel):
     csrf_token: str = Field(None, alias="_csrf_token")
     legacy_normandy_session: str = Field(None, alias="_legacy_normandy_session")
     normandy_session: str = Field(None, alias="_normandy_session")
@@ -14,3 +14,9 @@ class AuthData(BaseModel):
 
     class Config:
         allow_population_by_field_name = True
+
+
+class UserData(BaseModel):
+    username: str
+    web_id: str
+    canvas_auth_data: CanvasAuthData | None
