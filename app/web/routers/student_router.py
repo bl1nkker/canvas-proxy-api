@@ -1,16 +1,16 @@
 from functools import partial
 from typing import Annotated
-from fastapi import APIRouter, Depends, status, Body, UploadFile, File
+
+from fastapi import APIRouter, Body, Depends, File, UploadFile, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
-from web.hooks.validate_content_type import validate_content_type
-from web.depends.db import get_db_session
-
 from src.dto import student_dto
 from src.services.service_factory import service_factory
 from src.services.student_service import StudentService
+from web.depends.db import get_db_session
+from web.hooks.validate_content_type import validate_content_type
 
 router = APIRouter(prefix="/api/students/v1", tags=["Students"])
 

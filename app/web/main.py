@@ -1,10 +1,14 @@
 from sqlalchemy.engine import create_engine
 
-from routers import face_recognition_router, upload_router, student_router, auth_router
-
-from log import configure_logging
 from db.config import get_db_config
-from web_application import create_web_application
+from log import configure_logging
+from web.routers import (
+    auth_router,
+    face_recognition_router,
+    student_router,
+    upload_router,
+)
+from web.web_application import create_web_application
 
 configure_logging()
 

@@ -1,4 +1,4 @@
-from typing import TypeVar, Callable, Type
+from typing import TypeVar, Callable
 
 from sqlalchemy.orm.exc import StaleDataError
 import structlog
@@ -13,11 +13,10 @@ from src.errors.base_error import BaseError
 from src.errors.types import ValidationError
 
 
-
 BaseErrorType = TypeVar("BaseErrorType", bound=BaseError)
 
 
-def generate_default_error_handler(errors_map: dict[Type[Exception], int]) -> Callable:
+def generate_default_error_handler(errors_map: dict[type[Exception], int]) -> Callable:
     logger = structlog.getLogger(__name__)
 
     def _default_error_handler(request: Request, exc: Exception) -> JSONResponse:
@@ -39,7 +38,6 @@ def generate_default_error_handler(errors_map: dict[Type[Exception], int]) -> Ca
                     message="_error_msg_stale_data_error",
                     code=CoreErrors.STALE_DATA_ERROR,
                 )
-
         message = HttpCoreError.SERVER_ERROR_MESSAGE
         if (
             hasattr(exc, "message")
