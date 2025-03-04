@@ -13,3 +13,7 @@ class CanvasCourseRepo(DataRepo[CanvasCourse]):
     def get_by_canvas_course_id(self, canvas_course_id: int, query=None):
         query = query or self.query()
         return query.filter(self._type.canvas_course_id == canvas_course_id).first()
+
+    def get_by_web_id(self, web_id: str, query=None):
+        query = query or self.query()
+        return query.filter(self._type.web_id == web_id).first()

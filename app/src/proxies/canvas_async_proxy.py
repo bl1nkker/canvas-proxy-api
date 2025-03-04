@@ -2,10 +2,12 @@ import urllib.parse
 
 import aiohttp
 
-from src.dto import auth_dto, canvas_course_dto
+from src.dto import auth_dto, canvas_assignment_dto, canvas_course_dto
 
 
 class CanvasAsyncProxy:
+    ATTENDANCE_GROUP_NAME = "Сабаққа қатысу/Посещаемость"
+
     def __init__(self, canvas_domain: str) -> None:
         self._canvas_domain = canvas_domain
 
@@ -73,3 +75,28 @@ class CanvasAsyncProxy:
             final_cookies = {k: v.value for k, v in response.cookies.items()}
             cookies.update(final_cookies)
             return cookies
+
+    async def list_attendance_assignment_group(
+        self,
+        cookies: auth_dto.CanvasAuthData,
+        course_id: int,
+    ) -> list[canvas_assignment_dto.AssignmentGroup]:
+        url = f"https://canvas.narxoz.kz/api/v1/courses/{course_id}/assignment_groups"
+        query_params = (
+            ("exclude_response_fields[]", "description"),
+            ("include[]", "assignments"),
+            ("per_page", "100"),
+        )
+        url = url + "?" + "&".join([f"{param[0]}={param[1]}" for param in query_params])
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                url, cookies=cookies.dict(by_alias=True)
+            ) as response:
+                response.raise_for_status()
+                response_body = await response.json()
+                print(response_body)
+                return [
+                    canvas_assignment_dto.AssignmentGroup.model_validate(item)
+                    for item in response_body
+                    if item["name"] == self.ATTENDANCE_GROUP_NAME
+                ]
