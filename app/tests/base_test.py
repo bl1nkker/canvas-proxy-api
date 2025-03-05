@@ -163,10 +163,18 @@ class BaseTest(DbTest, FileFixtures):
         mock_response.__aexit__.return_value = None
 
         mock_cookies = SimpleCookie()
-        for key, value in sample_data.canvas_ok_data.items():
+        for key, value in sample_data.canvas_auth_data.items():
             mock_cookies[key] = value
 
         mock_response.cookies = MagicMock()
         mock_response.cookies.items.return_value = mock_cookies.items()
+
+        return mock_response
+
+    @pytest.fixture
+    def canvas_not_ok_response(self):
+        mock_response = AsyncMock()
+        mock_response.__aenter__.return_value = mock_response
+        mock_response.__aexit__.return_value = None
 
         return mock_response

@@ -19,7 +19,9 @@ class AuthService:
         self._canvas_user_repo = canvas_user_repo
         self._canvas_proxy_provider = canvas_proxy_provider_cls()
 
-    async def create_user(self, dto: auth_dto.LoginRequest) -> auth_dto.UserData:
+    async def create_user(
+        self, dto: auth_dto.Signup
+    ) -> tuple[auth_dto.UserData, auth_dto.CanvasAuthData]:
         with self._user_repo.session():
             user = self._user_repo.get_by_username(username=dto.username)
             if user is not None:
@@ -30,7 +32,7 @@ class AuthService:
             user.set_password(password=dto.password)
             user = self._user_repo.save_or_update(user)
 
-        # check if user exists inside Canvas
+        # TODO: IMPROVE USER CHECK BEFORE CREATING AND TEST
         auth_data = await self._canvas_proxy_provider.get_auth_data(
             username=dto.username, password=dto.password
         )
@@ -49,13 +51,11 @@ class AuthService:
             )
             canvas_user.set_password(password=dto.password)
             self._canvas_user_repo.save_or_update(canvas_user)
-        return auth_dto.UserData(
-            username=user.username, web_id=user.web_id, canvas_auth_data=auth_data
-        )
+        return auth_dto.UserData(username=user.username, web_id=user.web_id), auth_data
 
     async def get_canvas_auth_data(
         self, dto: auth_dto.LoginRequest
-    ) -> auth_dto.UserData:
+    ) -> tuple[auth_dto.UserData, auth_dto.CanvasAuthData]:
         with self._user_repo.session():
             user = self._user_repo.get_by_username(username=dto.username)
             if not user or not user.check_password(dto.password):
@@ -73,9 +73,7 @@ class AuthService:
                 username=canvas_user.username, password=canvas_user.password
             )
         )
-        return auth_dto.UserData(
-            username=user.username,
-            web_id=user.web_id,
-            canvas_auth_data=auth_data,
-            id=user.id,
+        return (
+            auth_dto.UserData(username=user.username, web_id=user.web_id, id=user.id),
+            auth_data,
         )

@@ -1,5 +1,3 @@
-import pytest
-
 from src.models import CanvasUser
 from tests.base_test import BaseTest
 

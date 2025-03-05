@@ -7,6 +7,7 @@ from ml import lifespan
 from src.errors.types import (
     InvalidContentTypeError,
     InvalidCredentialsError,
+    InvalidDataError,
     InvalidTokenError,
     NotFoundError,
     ValidationError,
@@ -32,6 +33,7 @@ def create_web_application(
 
     em: dict[type[Exception], int] = {
         ValidationError: status.HTTP_400_BAD_REQUEST,
+        InvalidDataError: status.HTTP_400_BAD_REQUEST,
         InvalidTokenError: status.HTTP_401_UNAUTHORIZED,
         InvalidCredentialsError: status.HTTP_401_UNAUTHORIZED,
         InvalidContentTypeError: status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,

@@ -1,6 +1,11 @@
 from pydantic import BaseModel, Field
 
 
+class Signup(BaseModel):
+    username: str
+    password: str
+
+
 class LoginRequest(BaseModel):
     username: str
     password: str
@@ -19,5 +24,3 @@ class CanvasAuthData(BaseModel):
 class UserData(BaseModel):
     username: str
     web_id: str
-    id: int
-    canvas_auth_data: CanvasAuthData | None

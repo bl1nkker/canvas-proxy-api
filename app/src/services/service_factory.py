@@ -8,7 +8,6 @@ from src.repositories.user_repo import UserRepo
 from src.services.auth_service import AuthService
 from src.services.canvas_assignment_service import CanvasAssignmentService
 from src.services.canvas_course_service import CanvasCourseService
-from src.services.face_recognition_service import FaceRecognitionService
 from src.services.student_service import StudentService
 from src.services.upload_service import UploadService
 
@@ -40,13 +39,6 @@ class ServiceFactory:
         return UploadService(
             file_record_repo=self.file_record_repo(db_session=db_session),
             file_fs_repo=self.file_fs_repo(),
-        )
-
-    def face_recognition_service(self, db_session):
-        return FaceRecognitionService(
-            file_record_repo=self.file_record_repo(db_session=db_session),
-            student_repo=self.student_repo(db_session=db_session),
-            student_vector_repo=self.student_vector_repo(db_session=db_session),
         )
 
     def student_service(self, db_session):
