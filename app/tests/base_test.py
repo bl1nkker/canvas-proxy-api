@@ -14,6 +14,7 @@ from src.repositories.file_fs_repo import FileFsRepo
 from src.repositories.file_record_repo import FileRecordRepo
 from src.repositories.user_repo import UserRepo
 from src.services.auth_service import AuthService
+from src.services.canvas_course_service import CanvasCourseService
 from tests.fixtures import sample_data
 from tests.fixtures.db_fixtures import DbTest
 from tests.fixtures.file_fixtures import FileFixtures
@@ -48,6 +49,12 @@ class BaseTest(DbTest, FileFixtures):
     @pytest.fixture
     def auth_service(self, user_repo, canvas_user_repo):
         return AuthService(user_repo=user_repo, canvas_user_repo=canvas_user_repo)
+
+    @pytest.fixture
+    def canvas_course_service(self, canvas_course_repo, canvas_user_repo):
+        return CanvasCourseService(
+            canvas_course_repo=canvas_course_repo, canvas_user_repo=canvas_user_repo
+        )
 
     @pytest.fixture
     def patch_uuid(self, monkeypatch):
@@ -146,13 +153,61 @@ class BaseTest(DbTest, FileFixtures):
 
     @pytest.fixture
     def create_canvas_user(self, sample_canvas_user, canvas_user_repo) -> CanvasUser:
-        def _gen(username="test@gmail.com", password="test-pwd", web_id="web-id-1"):
+        def _gen(
+            username="test@gmail.com",
+            password="test-pwd",
+            web_id="web-id-1",
+            canvas_id="canvas-id-1",
+        ):
             user = sample_canvas_user(
-                username=username, password=password, web_id=web_id
+                username=username, password=password, web_id=web_id, canvas_id=canvas_id
             )
             with canvas_user_repo.session():
                 user = canvas_user_repo.save_or_update(user)
             return user
+
+        return _gen
+
+    @pytest.fixture
+    def sample_canvas_course(self):
+        def _gen(
+            canvas_user,
+            web_id="web-id-1",
+            long_name="test-long_name",
+            canvas_course_id=228337,
+        ):
+            course = CanvasCourse(
+                web_id=web_id,
+                long_name=long_name,
+                short_name="test-short_name",
+                original_name="test-original_name",
+                course_code="code-123",
+                canvas_course_id=canvas_course_id,
+                canvas_user_id=canvas_user.id,
+            )
+            return course
+
+        return _gen
+
+    @pytest.fixture
+    def create_canvas_course(
+        self, sample_canvas_course, canvas_course_repo, create_canvas_user
+    ) -> CanvasCourse:
+        def _gen(
+            canvas_user,
+            web_id="web-id-1",
+            long_name="test-long_name",
+            canvas_course_id=228337,
+        ):
+            course = sample_canvas_course(
+                web_id=web_id,
+                long_name=long_name,
+                canvas_course_id=canvas_course_id,
+                canvas_user=canvas_user,
+            )
+            with canvas_course_repo.session():
+                course = canvas_course_repo.save_or_update(course)
+            return course
 
         return _gen
 
@@ -172,9 +227,10 @@ class BaseTest(DbTest, FileFixtures):
         return mock_response
 
     @pytest.fixture
-    def canvas_not_ok_response(self):
+    def canvas_course_ok_response(self):
         mock_response = AsyncMock()
         mock_response.__aenter__.return_value = mock_response
         mock_response.__aexit__.return_value = None
+        mock_response.json.return_value = sample_data.canvas_courses_data
 
         return mock_response

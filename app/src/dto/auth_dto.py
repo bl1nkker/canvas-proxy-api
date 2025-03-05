@@ -17,9 +17,6 @@ class CanvasAuthData(BaseModel):
     normandy_session: str = Field(alias="_normandy_session")
     log_session_id: str
 
-    class Config:
-        allow_population_by_field_name = True
-
 
 class UserData(BaseModel):
     username: str

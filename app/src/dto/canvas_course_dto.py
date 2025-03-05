@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 
 
 class FilterParams(BaseModel):
-    canvas_user_id: Optional[str] = None
+    canvas_user_id: Optional[int] = None
 
 
 class Read(BaseModel):
