@@ -1,0 +1,43 @@
+#!/usr/bin/env python3
+import subprocess
+import sys
+
+def start_processes(processes):
+    is_fine = True
+    for proc in processes:
+        print(f"🔍 Running {proc['name']}...")
+        result = subprocess.run(proc["command"], capture_output=True, text=True)
+
+        if result.returncode == 0:
+            print(f"\t✅ {proc['name']} check passed.")
+        else:
+            is_fine = False
+            print(f"\t❌ {proc['name']} check failed.")
+            print(result.stderr)
+    return is_fine
+
+
+def main():
+    print("🔍 Running pre-commit hook with Ruff...")
+    run_poetry = []
+
+    # Check if ruff is installed
+    try:
+        subprocess.run(run_poetry + ["ruff", "--version"], check=True, stdout=subprocess.DEVNULL)
+    except FileNotFoundError:
+        print("❌ Ruff is not installed. Please install it: pip install ruff")
+        sys.exit(1)
+
+    is_fine = start_processes([
+        # lLnter
+        {"name": "Lint", "command": ["ruff", "check", "."]},
+        # Format
+        # {"name": "Format", "command": ["ruff", "format", "."]},
+        # Pytest
+        # {"name": "Pytest", "command": ["pytest"]},
+    ])
+    if not is_fine:
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()
