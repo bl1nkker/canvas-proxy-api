@@ -7,9 +7,9 @@ class LoginRequest(BaseModel):
 
 
 class CanvasAuthData(BaseModel):
-    csrf_token: str = Field(None, alias="_csrf_token")
-    legacy_normandy_session: str = Field(None, alias="_legacy_normandy_session")
-    normandy_session: str = Field(None, alias="_normandy_session")
+    csrf_token: str = Field(alias="_csrf_token")
+    legacy_normandy_session: str = Field(alias="_legacy_normandy_session")
+    normandy_session: str = Field(alias="_normandy_session")
     log_session_id: str
 
     class Config:

@@ -1,6 +1,8 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from src.dto import auth_dto
@@ -20,7 +22,13 @@ async def login(
     dto: auth_dto.LoginRequest, service: Annotated[AuthService, Depends(get_service)]
 ):
     result = await service.get_canvas_auth_data(dto=dto)
-    return result
+    response = JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content=jsonable_encoder({"message": "success"}),
+    )
+    for k, v in result.items():
+        response.set_cookie(key=k, value=v)
+    return response
 
 
 @router.post("/signup")
@@ -28,12 +36,7 @@ async def signup(
     dto: auth_dto.LoginRequest, service: Annotated[AuthService, Depends(get_service)]
 ):
     result = await service.create_user(dto=dto)
-    return result
-
-
-@router.post("/courses")
-async def get_courses(
-    dto: auth_dto.LoginRequest, service: Annotated[AuthService, Depends(get_service)]
-):
-    result = await service.get_courses(dto=dto)
-    return result
+    return JSONResponse(
+        status_code=status.HTTP_201_CREATED,
+        content=jsonable_encoder(result),
+    )

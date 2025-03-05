@@ -2,8 +2,6 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
-from src.dto import auth_dto
-
 
 class FilterParams(BaseModel):
     canvas_user_id: Optional[str] = None
@@ -44,7 +42,6 @@ class ListRead(Read):
 
 class LoadCourse(BaseModel):
     user_id: int
-    canvas_auth_data: auth_dto.CanvasAuthData
 
 
 class CourseLink(BaseModel):
