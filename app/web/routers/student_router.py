@@ -45,7 +45,6 @@ async def list_students(
 async def save_student(
     service: Annotated[StudentService, Depends(get_service)],
     dto: student_dto.Create = Body(
-        ...,
         example={"firstname": "Sam", "lastname": "Altman", "email": "bot@gmail.com"},
     ),
 ):
@@ -86,6 +85,4 @@ async def search_student_by_image(
     dto = service.search_student_by_image(
         name=file.filename, content_type=file.content_type, stream=file.file
     )
-    return JSONResponse(
-        status_code=status.HTTP_201_CREATED, content=jsonable_encoder(dto)
-    )
+    return JSONResponse(status_code=status.HTTP_200_OK, content=jsonable_encoder(dto))
