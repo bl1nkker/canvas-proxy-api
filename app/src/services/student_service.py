@@ -4,7 +4,7 @@ import shortuuid
 
 from db.data_repo import Pagination
 from ml import face_encoder
-from src.dto import canvas_course_dto, enrollment_dto, student_dto
+from src.dto import enrollment_dto, student_dto
 from src.errors.types import InvalidDataError, NotFoundError
 from src.models.enrollment import Enrollment
 from src.models.student import Student
@@ -126,7 +126,4 @@ class StudentService:
                 student_id=student.id, course_id=course.id, web_id=shortuuid.uuid()
             )
             self._enrollment_repo.save_or_update(enrollment)
-        return enrollment_dto.Read(
-            student=student_dto.Read.from_dbmodel(student),
-            course=canvas_course_dto.Read.from_dbmodel(course),
-        )
+        return enrollment_dto.Read.from_dbmodel(enrollment)

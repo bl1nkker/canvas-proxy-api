@@ -17,4 +17,9 @@ class CanvasCourse(Base, DbModel, HasWebId):
     )
     canvas_user = relationship("CanvasUser", back_populates="courses", lazy="joined")
 
-    enrollments = relationship("Enrollment", back_populates="course")
+    enrollments = relationship(
+        "Enrollment",
+        back_populates="course",
+        primaryjoin="CanvasCourse.id == Enrollment.course_id",
+        lazy="selectin",
+    )

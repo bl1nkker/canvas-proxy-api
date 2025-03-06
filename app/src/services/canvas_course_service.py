@@ -1,7 +1,7 @@
 import shortuuid
 
 from db.data_repo import Pagination
-from src.dto import auth_dto, canvas_course_dto
+from src.dto import auth_dto, canvas_course_dto, enrollment_dto
 from src.errors.types import NotFoundError
 from src.models.canvas_course import CanvasCourse
 from src.proxies.canvas_proxy_provider import CanvasProxyProvider
@@ -95,3 +95,10 @@ class CanvasCourseService:
             canvas_course_dto.ListRead.from_dbmodel(course)
             for course in created_courses
         ]
+
+    async def get_course_enrollments(self, web_id) -> list[enrollment_dto.Read]:
+        with self._canvas_course_repo.session():
+            course = self._canvas_course_repo.get_by_web_id(web_id=web_id)
+        if not course:
+            raise NotFoundError(message=f"_error_msg_course_not_found:{web_id}")
+        return [enrollment_dto.Read.from_dbmodel(item) for item in course.enrollments]

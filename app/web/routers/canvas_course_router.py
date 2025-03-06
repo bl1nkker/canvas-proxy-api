@@ -78,3 +78,14 @@ async def create_assignment(
     return JSONResponse(
         status_code=status.HTTP_201_CREATED, content=jsonable_encoder(result)
     )
+
+
+@router.get("/{web_id}/enrollments")
+async def get_course_enrollments(
+    web_id: str,
+    service: Annotated[CanvasCourseService, Depends(get_service)],
+):
+    result = await service.get_course_enrollments(web_id=web_id)
+    return JSONResponse(
+        status_code=status.HTTP_200_OK, content=jsonable_encoder(result)
+    )

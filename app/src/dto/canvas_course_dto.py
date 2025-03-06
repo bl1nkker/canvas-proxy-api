@@ -22,6 +22,16 @@ class Read(BaseModel):
     def from_dict(cls, item):
         return cls(**item)
 
+    @classmethod
+    def from_dbmodel(cls, item):
+        return cls(
+            long_name=item.long_name,
+            short_name=item.short_name,
+            original_name=item.original_name,
+            course_code=item.course_code,
+            course_id=item.canvas_course_id,
+        )
+
 
 class ListRead(Read):
     web_id: str
