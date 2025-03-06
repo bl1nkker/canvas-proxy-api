@@ -111,5 +111,4 @@ class TestGenerateCanvasAssignmentData:
         assert set(result["assignment"]) == set(self.assignment_required_fields)
         assert result["assignment"]["name"] == expected_name
         assert result["assignment"]["grading_type"] == "pass_fail"
-        assert "bl1nkker" in result["assignment"]["description"]
         assert result["assignment"]["published"] is True

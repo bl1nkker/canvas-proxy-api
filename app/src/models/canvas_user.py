@@ -3,7 +3,7 @@ from sqlalchemy.orm import relationship
 
 from db import DbModel, HasWebId
 from src.models.base import Base
-from utils.dencrypt import decrypt_password, encrypt_password
+from utils.dencrypt import decrypt, encrypt
 
 
 class CanvasUser(Base, DbModel, HasWebId):
@@ -20,11 +20,11 @@ class CanvasUser(Base, DbModel, HasWebId):
     )
 
     def set_password(self, password: str):
-        self.encrypted_password = encrypt_password(password)
+        self.encrypted_password = encrypt(password)
 
     def check_password(self, password: str) -> bool:
         return password == self.password
 
     @property
     def password(self):
-        return decrypt_password(self.encrypted_password)
+        return decrypt(self.encrypted_password)

@@ -9,12 +9,14 @@ from utils import generate_get_config_method
 class AppConfig(BaseModel):
     canvas_domain: str
     encryption_key: str
+    secure_key: str
 
 
 def _get_config(get_value: Callable[[str], str], is_test: bool) -> dict:
     return dict(
         canvas_domain=get_value("CANVAS_DOMAIN"),
         encryption_key=get_value("ENCRYPTION_KEY"),
+        secure_key=get_value("SECURE_KEY"),
     )
 
 
