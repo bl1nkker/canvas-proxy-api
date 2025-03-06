@@ -8,10 +8,14 @@ import shortuuid
 from app_config import AppConfig, get_app_config
 from src.models import CanvasUser, FileRecord, User
 from src.models.canvas_course import CanvasCourse
+from src.models.enrollment import Enrollment
+from src.models.student import Student
 from src.repositories.canvas_course_repo import CanvasCourseRepo
 from src.repositories.canvas_user_repo import CanvasUserRepo
+from src.repositories.enrollment_repo import EnrollmentRepo
 from src.repositories.file_fs_repo import FileFsRepo
 from src.repositories.file_record_repo import FileRecordRepo
+from src.repositories.student_repo import StudentRepo
 from src.repositories.user_repo import UserRepo
 from src.services.auth_service import AuthService
 from src.services.canvas_course_service import CanvasCourseService
@@ -45,6 +49,14 @@ class BaseTest(DbTest, FileFixtures):
     @pytest.fixture
     def canvas_user_repo(self, db_session):
         return CanvasUserRepo(db_session)
+
+    @pytest.fixture
+    def enrollment_repo(self, db_session):
+        return EnrollmentRepo(db_session)
+
+    @pytest.fixture
+    def student_repo(self, db_session):
+        return StudentRepo(db_session)
 
     @pytest.fixture
     def auth_service(self, user_repo, canvas_user_repo):
@@ -83,7 +95,15 @@ class BaseTest(DbTest, FileFixtures):
         monkeypatch.setattr(shortuuid, "uuid", web_id)
 
     @pytest.fixture
-    def cleanup_all(self, cleanup_file_records, cleanup_users, cleanup_canvas_users):
+    def cleanup_all(
+        self,
+        cleanup_file_records,
+        cleanup_users,
+        cleanup_canvas_users,
+        cleanup_canvas_courses,
+        cleanup_students,
+        cleanup_enrollments,
+    ):
         pass
 
     @pytest.fixture
@@ -111,11 +131,21 @@ class BaseTest(DbTest, FileFixtures):
             canvas_course_repo.query(CanvasCourse).delete()
 
     @pytest.fixture
-    def sample_user(self) -> User:
-        def _gen(
-            username: str = "test@gmail.com", password="test-pwd", web_id="web-id-1"
-        ):
-            user = User(username=username, web_id=web_id)
+    def cleanup_enrollments(self, enrollment_repo):
+        yield
+        with enrollment_repo.session():
+            enrollment_repo.query(Enrollment).delete()
+
+    @pytest.fixture
+    def cleanup_students(self, student_repo):
+        yield
+        with student_repo.session():
+            student_repo.query(Student).delete()
+
+    @pytest.fixture
+    def sample_user(self, patch_shortuuid) -> User:
+        def _gen(username: str = "test@gmail.com", password="test-pwd"):
+            user = User(username=username, web_id=shortuuid.uuid())
             user.set_password(password=password)
             return user
 
@@ -123,8 +153,8 @@ class BaseTest(DbTest, FileFixtures):
 
     @pytest.fixture
     def create_user(self, sample_user, user_repo) -> User:
-        def _gen(username="test@gmail.com", password="test-pwd", web_id="web-id-1"):
-            user = sample_user(username=username, password=password, web_id=web_id)
+        def _gen(username="test@gmail.com", password="test-pwd"):
+            user = sample_user(username=username, password=password)
             with user_repo.session():
                 user = user_repo.save_or_update(user)
             return user
@@ -132,19 +162,18 @@ class BaseTest(DbTest, FileFixtures):
         return _gen
 
     @pytest.fixture
-    def sample_canvas_user(self, create_user):
+    def sample_canvas_user(self, create_user, patch_shortuuid):
         def _gen(
             username="test@gmail.com",
             password="test-pwd",
-            web_id="web-id-1",
             canvas_id="canvas-id-1",
         ):
-            user = create_user(username=username, password=password, web_id=web_id)
+            user = create_user(username=username, password=password)
             canvas_user = CanvasUser(
                 user_id=user.id,
                 canvas_id=canvas_id,
                 username=f"canvas_{user.username}",
-                web_id=web_id,
+                web_id=shortuuid.uuid(),
             )
             canvas_user.set_password(password=password)
             return canvas_user
@@ -156,11 +185,10 @@ class BaseTest(DbTest, FileFixtures):
         def _gen(
             username="test@gmail.com",
             password="test-pwd",
-            web_id="web-id-1",
             canvas_id="canvas-id-1",
         ):
             user = sample_canvas_user(
-                username=username, password=password, web_id=web_id, canvas_id=canvas_id
+                username=username, password=password, canvas_id=canvas_id
             )
             with canvas_user_repo.session():
                 user = canvas_user_repo.save_or_update(user)
@@ -169,15 +197,14 @@ class BaseTest(DbTest, FileFixtures):
         return _gen
 
     @pytest.fixture
-    def sample_canvas_course(self):
+    def sample_canvas_course(self, patch_shortuuid):
         def _gen(
             canvas_user,
-            web_id="web-id-1",
             long_name="test-long_name",
             canvas_course_id=228337,
         ):
             course = CanvasCourse(
-                web_id=web_id,
+                web_id=shortuuid.uuid(),
                 long_name=long_name,
                 short_name="test-short_name",
                 original_name="test-original_name",
@@ -195,12 +222,10 @@ class BaseTest(DbTest, FileFixtures):
     ) -> CanvasCourse:
         def _gen(
             canvas_user,
-            web_id="web-id-1",
             long_name="test-long_name",
             canvas_course_id=228337,
         ):
             course = sample_canvas_course(
-                web_id=web_id,
                 long_name=long_name,
                 canvas_course_id=canvas_course_id,
                 canvas_user=canvas_user,
@@ -208,6 +233,51 @@ class BaseTest(DbTest, FileFixtures):
             with canvas_course_repo.session():
                 course = canvas_course_repo.save_or_update(course)
             return course
+
+        return _gen
+
+    @pytest.fixture
+    def sample_enrollment(self, patch_shortuuid):
+        def _gen(student, course):
+            enrollment = Enrollment(
+                web_id=shortuuid.uuid(), student_id=student.id, course_id=course.id
+            )
+            return enrollment
+
+        return _gen
+
+    @pytest.fixture
+    def create_enrollment(self, sample_enrollment, enrollment_repo) -> CanvasCourse:
+        def _gen(course, student):
+            enrollment = sample_enrollment(course=course, student=student)
+            with enrollment_repo.session():
+                enrollment = enrollment_repo.save_or_update(enrollment)
+            return enrollment
+
+        return _gen
+
+    @pytest.fixture
+    def sample_student(self, patch_shortuuid):
+        def _gen(firstname="Test", lastname="Testname", email="test@gmail.com"):
+            student = Student(
+                web_id=shortuuid.uuid(),
+                firstname=firstname,
+                lastname=lastname,
+                email=email,
+            )
+            return student
+
+        return _gen
+
+    @pytest.fixture
+    def create_student(self, sample_student, student_repo) -> CanvasCourse:
+        def _gen(firstname="Test", lastname="Testname", email="test@gmail.com"):
+            student = sample_student(
+                firstname=firstname, lastname=lastname, email=email
+            )
+            with student_repo.session():
+                student = student_repo.save_or_update(student)
+            return student
 
         return _gen
 

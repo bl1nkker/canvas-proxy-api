@@ -36,7 +36,6 @@ class TestCanvasUserRepo(BaseTest):
             for i in range(5):
                 user = sample_canvas_user(
                     username=f"test_{i}@gmail.com",
-                    web_id=f"web-id-{2 + i}",
                     canvas_id=f"canvas-id-{2 + i}",
                 )
                 canvas_user_repo.save_or_update(user)
@@ -91,7 +90,6 @@ class TestCanvasUserRepo(BaseTest):
             for i in range(5):
                 user = sample_canvas_user(
                     username=f"test_{i}@gmail.com",
-                    web_id=f"web-id-{2 + i}",
                     canvas_id=f"canvas-id-{2 + i}",
                 )
                 canvas_user_repo.save_or_update(user)

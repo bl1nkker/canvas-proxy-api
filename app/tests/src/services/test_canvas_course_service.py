@@ -19,7 +19,6 @@ class TestCanvasCourseService(BaseTest):
         canvas_user = create_canvas_user()
         for i in range(5):
             create_canvas_course(
-                web_id=f"web-id-{i}",
                 long_name=f"test-long_name{i}",
                 canvas_course_id=i,
                 canvas_user=canvas_user,
@@ -40,7 +39,6 @@ class TestCanvasCourseService(BaseTest):
         canvas_user = create_canvas_user()
         for i in range(2):
             create_canvas_course(
-                web_id=f"web-id-{2 + i}",
                 long_name=f"test{i}",
                 canvas_user=canvas_user,
                 canvas_course_id=i,
@@ -48,12 +46,10 @@ class TestCanvasCourseService(BaseTest):
 
         another_user = create_canvas_user(
             username="another@.com",
-            web_id="web-id-2",
             canvas_id="canvas_id_228",
         )
         for i in range(5):
             create_canvas_course(
-                web_id=f"another_web-id-{2 + i}",
                 long_name=f"another_test{i}",
                 canvas_user=another_user,
                 canvas_course_id=i + 5,

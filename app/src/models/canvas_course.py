@@ -15,5 +15,6 @@ class CanvasCourse(Base, DbModel, HasWebId):
     canvas_user_id = Column(
         Integer, ForeignKey("app.canvas_users.id", ondelete="CASCADE")
     )
-
     canvas_user = relationship("CanvasUser", back_populates="courses", lazy="joined")
+
+    enrollments = relationship("Enrollment", back_populates="course")

@@ -28,18 +28,14 @@ class TestCanvasCourseRepo(BaseTest):
     ):
         canvas_user = create_canvas_user()
         with canvas_course_repo.session():
-            course = sample_canvas_course(
-                web_id="web-id-1", long_name="test", canvas_user=canvas_user
-            )
+            course = sample_canvas_course(long_name="test", canvas_user=canvas_user)
             created_course = canvas_course_repo.save_or_update(course)
             for i in range(5):
                 another_user = create_canvas_user(
                     username=f"test@{i}.com",
-                    web_id=f"web-id-{2 + i}",
                     canvas_id=f"canvas_id{i}",
                 )
                 course = sample_canvas_course(
-                    web_id=f"web-id-{2 + i}",
                     long_name=f"test{i}",
                     canvas_user=another_user,
                     canvas_course_id=i,
@@ -51,16 +47,14 @@ class TestCanvasCourseRepo(BaseTest):
             course = canvas_course_repo.get_by_db_id(db_id=created_course.id)
             assert course.long_name == "test"
             assert course.canvas_user == canvas_user
-            assert course.web_id == "web-id-1"
+            assert course.web_id == "web-id-3"
 
     def test_update_canvas_course(
         self, sample_canvas_course, create_canvas_user, canvas_course_repo, cleanup_all
     ):
         canvas_user = create_canvas_user()
         with canvas_course_repo.session():
-            course = sample_canvas_course(
-                web_id="web-id-1", long_name="test", canvas_user=canvas_user
-            )
+            course = sample_canvas_course(long_name="test", canvas_user=canvas_user)
             created_course = canvas_course_repo.save_or_update(course)
 
         with canvas_course_repo.session():
@@ -74,16 +68,14 @@ class TestCanvasCourseRepo(BaseTest):
             course = canvas_course_repo.get_by_db_id(db_id=created_course.id)
             assert course.long_name == "another name"
             assert course.canvas_user == canvas_user
-            assert course.web_id == "web-id-1"
+            assert course.web_id == "web-id-3"
 
     def test_delete_canvas_course(
         self, sample_canvas_course, create_canvas_user, canvas_course_repo, cleanup_all
     ):
         canvas_user = create_canvas_user()
         with canvas_course_repo.session():
-            course = sample_canvas_course(
-                web_id="web-id-1", long_name="test", canvas_user=canvas_user
-            )
+            course = sample_canvas_course(long_name="test", canvas_user=canvas_user)
             created_course = canvas_course_repo.save_or_update(course)
 
         with canvas_course_repo.session():
@@ -103,7 +95,6 @@ class TestCanvasCourseRepo(BaseTest):
             canvas_user = create_canvas_user()
             for i in range(2):
                 course = sample_canvas_course(
-                    web_id=f"web-id-{2 + i}",
                     long_name=f"test{i}",
                     canvas_user=canvas_user,
                     canvas_course_id=i,
@@ -112,12 +103,10 @@ class TestCanvasCourseRepo(BaseTest):
 
             another_user = create_canvas_user(
                 username="another@.com",
-                web_id="web-id-2",
                 canvas_id="canvas_id_228",
             )
             for i in range(5):
                 course = sample_canvas_course(
-                    web_id=f"another_web-id-{2 + i}",
                     long_name=f"another_test{i}",
                     canvas_user=another_user,
                     canvas_course_id=i + 5,

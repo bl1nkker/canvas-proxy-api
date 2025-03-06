@@ -23,9 +23,7 @@ class TestUserRepo(BaseTest):
             user = sample_user(username="test@gmail.com")
             created_user = user_repo.save_or_update(user)
             for i in range(5):
-                user = sample_user(
-                    username=f"test_{i}@gmail.com", web_id=f"web-id-{2 + i}"
-                )
+                user = sample_user(username=f"test_{i}@gmail.com")
                 user_repo.save_or_update(user)
 
         with user_repo.session():
@@ -71,9 +69,7 @@ class TestUserRepo(BaseTest):
             user = sample_user(username="test@gmail.com")
             user_repo.save_or_update(user)
             for i in range(5):
-                user = sample_user(
-                    username=f"test_{i}@gmail.com", web_id=f"web-id-{2 + i}"
-                )
+                user = sample_user(username=f"test_{i}@gmail.com")
                 user_repo.save_or_update(user)
 
         with user_repo.session():
