@@ -10,15 +10,19 @@ from src.models import CanvasUser, FileRecord, User
 from src.models.canvas_course import CanvasCourse
 from src.models.enrollment import Enrollment
 from src.models.student import Student
+from src.models.student_vector import StudentVector
 from src.repositories.canvas_course_repo import CanvasCourseRepo
 from src.repositories.canvas_user_repo import CanvasUserRepo
 from src.repositories.enrollment_repo import EnrollmentRepo
 from src.repositories.file_fs_repo import FileFsRepo
 from src.repositories.file_record_repo import FileRecordRepo
 from src.repositories.student_repo import StudentRepo
+from src.repositories.student_vector_repo import StudentVectorRepo
 from src.repositories.user_repo import UserRepo
 from src.services.auth_service import AuthService
 from src.services.canvas_course_service import CanvasCourseService
+from src.services.student_service import StudentService
+from src.services.upload_service import UploadService
 from tests.fixtures import sample_data
 from tests.fixtures.db_fixtures import DbTest
 from tests.fixtures.file_fixtures import FileFixtures
@@ -59,13 +63,40 @@ class BaseTest(DbTest, FileFixtures):
         return StudentRepo(db_session)
 
     @pytest.fixture
+    def student_vector_repo(self, db_session):
+        return StudentVectorRepo(db_session)
+
+    @pytest.fixture
     def auth_service(self, user_repo, canvas_user_repo):
         return AuthService(user_repo=user_repo, canvas_user_repo=canvas_user_repo)
+
+    @pytest.fixture
+    def student_service(
+        self,
+        student_repo,
+        enrollment_repo,
+        canvas_course_repo,
+        student_vector_repo,
+        upload_service,
+    ):
+        return StudentService(
+            student_repo=student_repo,
+            enrollment_repo=enrollment_repo,
+            canvas_course_repo=canvas_course_repo,
+            student_vector_repo=student_vector_repo,
+            upload_service=upload_service,
+        )
 
     @pytest.fixture
     def canvas_course_service(self, canvas_course_repo, canvas_user_repo):
         return CanvasCourseService(
             canvas_course_repo=canvas_course_repo, canvas_user_repo=canvas_user_repo
+        )
+
+    @pytest.fixture
+    def upload_service(self, file_record_repo, file_fs_repo):
+        return UploadService(
+            file_fs_repo=file_fs_repo, file_record_repo=file_record_repo
         )
 
     @pytest.fixture
@@ -141,6 +172,12 @@ class BaseTest(DbTest, FileFixtures):
         yield
         with student_repo.session():
             student_repo.query(Student).delete()
+
+    @pytest.fixture
+    def cleanup_student_vectors(self, student_vector_repo):
+        yield
+        with student_vector_repo.session():
+            student_vector_repo.query(StudentVector).delete()
 
     @pytest.fixture
     def sample_user(self, patch_shortuuid) -> User:

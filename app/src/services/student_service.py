@@ -4,10 +4,13 @@ import shortuuid
 
 from db.data_repo import Pagination
 from ml import face_encoder
-from src.dto import student_dto
-from src.errors.types import NotFoundError
+from src.dto import canvas_course_dto, enrollment_dto, student_dto
+from src.errors.types import InvalidDataError, NotFoundError
+from src.models.enrollment import Enrollment
 from src.models.student import Student
 from src.models.student_vector import StudentVector
+from src.repositories.canvas_course_repo import CanvasCourseRepo
+from src.repositories.enrollment_repo import EnrollmentRepo
 from src.repositories.student_repo import StudentRepo
 from src.repositories.student_vector_repo import StudentVectorRepo
 from src.services.upload_service import UploadService
@@ -18,12 +21,16 @@ class StudentService:
     def __init__(
         self,
         student_repo: StudentRepo,
+        enrollment_repo: EnrollmentRepo,
+        canvas_course_repo: CanvasCourseRepo,
         student_vector_repo: StudentVectorRepo,
         upload_service: UploadService,
     ):
         self._student_repo = student_repo
         self._student_vector_repo = student_vector_repo
         self._upload_service = upload_service
+        self._canvas_course_repo = canvas_course_repo
+        self._enrollment_repo = enrollment_repo
 
     def list_students(
         self, page=1, page_size=10, order_by="id", asc=True
@@ -98,3 +105,28 @@ class StudentService:
         with self._student_repo.session():
             student = self._student_repo.get_by_db_id(db_id=image.student_id)
         return student_dto.Read.from_dbmodel(student)
+
+    def enroll_student(self, web_id: str, course_web_id: str):
+        with self._student_repo.session():
+            student = self._student_repo.get_by_web_id(web_id=web_id)
+        if not student:
+            raise NotFoundError(message=f"_error_msg_student_not_found:{web_id}")
+        with self._canvas_course_repo.session():
+            course = self._canvas_course_repo.get_by_web_id(web_id=course_web_id)
+        if not course:
+            raise NotFoundError(message=f"_error_msg_course_not_found:{course_web_id}")
+        with self._enrollment_repo.session():
+            enrollment = self._enrollment_repo.get_by_student_and_course_id(
+                student_id=student.id, course_id=course.id
+            )
+        if enrollment:
+            raise InvalidDataError(message="_error_msg_enrollment_already_exists")
+        with self._enrollment_repo.session():
+            enrollment = Enrollment(
+                student_id=student.id, course_id=course.id, web_id=shortuuid.uuid()
+            )
+            self._enrollment_repo.save_or_update(enrollment)
+        return enrollment_dto.Read(
+            student=student_dto.Read.from_dbmodel(student),
+            course=canvas_course_dto.Read.from_dbmodel(course),
+        )

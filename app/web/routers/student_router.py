@@ -44,11 +44,30 @@ async def list_students(
 @router.post("/")
 async def save_student(
     service: Annotated[StudentService, Depends(get_service)],
-    dto: student_dto.Create = Body(
-        example={"firstname": "Sam", "lastname": "Altman", "email": "bot@gmail.com"},
-    ),
+    dto: Annotated[
+        student_dto.Create,
+        Body(
+            example={
+                "firstname": "Sam",
+                "lastname": "Altman",
+                "email": "bot@gmail.com",
+            },
+        ),
+    ],
 ):
     dto = service.save_student(dto=dto)
+    return JSONResponse(
+        status_code=status.HTTP_201_CREATED, content=jsonable_encoder(dto)
+    )
+
+
+@router.post("/{web_id}/enroll/{course_web_id}")
+async def enroll_student(
+    web_id: str,
+    course_web_id: str,
+    service: Annotated[StudentService, Depends(get_service)],
+):
+    dto = service.enroll_student(web_id=web_id, course_web_id=course_web_id)
     return JSONResponse(
         status_code=status.HTTP_201_CREATED, content=jsonable_encoder(dto)
     )
@@ -61,7 +80,7 @@ async def save_student(
 async def save_student_image(
     web_id: str,
     service: Annotated[StudentService, Depends(get_service)],
-    file: UploadFile = File(...),
+    file: Annotated[UploadFile, File(...)],
 ):
     dto = service.save_student_image(
         web_id=web_id,
@@ -80,7 +99,7 @@ async def save_student_image(
 )
 async def search_student_by_image(
     service: Annotated[StudentService, Depends(get_service)],
-    file: UploadFile = File(...),
+    file: Annotated[UploadFile, File(...)],
 ):
     dto = service.search_student_by_image(
         name=file.filename, content_type=file.content_type, stream=file.file

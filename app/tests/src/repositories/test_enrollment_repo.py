@@ -37,9 +37,7 @@ class TestEnrollmentRepo(BaseTest):
         student = create_student()
         canvas_user = create_canvas_user()
         course = create_canvas_course(canvas_user=canvas_user)
-        with enrollment_repo.session():
-            enrollment = create_enrollment(course=course, student=student)
-            enrollment = enrollment_repo.save_or_update(enrollment)
+        enrollment = create_enrollment(course=course, student=student)
 
         with enrollment_repo.session():
             enrollments = enrollment_repo.list_all()
@@ -60,9 +58,7 @@ class TestEnrollmentRepo(BaseTest):
         student = create_student()
         canvas_user = create_canvas_user()
         course = create_canvas_course(canvas_user=canvas_user)
-        with enrollment_repo.session():
-            enrollment = create_enrollment(course=course, student=student)
-            enrollment = enrollment_repo.save_or_update(enrollment)
+        enrollment = create_enrollment(course=course, student=student)
 
         another_student = create_student()
         another_course = create_canvas_course(
@@ -93,9 +89,7 @@ class TestEnrollmentRepo(BaseTest):
         student = create_student()
         canvas_user = create_canvas_user()
         course = create_canvas_course(canvas_user=canvas_user)
-        with enrollment_repo.session():
-            enrollment = create_enrollment(course=course, student=student)
-            enrollment = enrollment_repo.save_or_update(enrollment)
+        enrollment = create_enrollment(course=course, student=student)
 
         with enrollment_repo.session():
             enrollment = enrollment_repo.get_by_db_id(db_id=enrollment.id)
@@ -114,20 +108,17 @@ class TestEnrollmentRepo(BaseTest):
         enrollment_repo,
         cleanup_all,
     ):
-        with enrollment_repo.session():
+        student = create_student()
+        canvas_user = create_canvas_user()
+        course = create_canvas_course(canvas_user=canvas_user)
+        enrollment = create_enrollment(course=course, student=student)
+        for i in range(5):
             student = create_student()
-            canvas_user = create_canvas_user()
-            course = create_canvas_course(canvas_user=canvas_user)
+            canvas_user = create_canvas_user(username=f"{i}-user", canvas_id=f"{i}")
+            course = create_canvas_course(
+                canvas_user=canvas_user, canvas_course_id=i + 10
+            )
             enrollment = create_enrollment(course=course, student=student)
-            enrollment = enrollment_repo.save_or_update(enrollment)
-            for i in range(5):
-                student = create_student()
-                canvas_user = create_canvas_user(username=f"{i}-user", canvas_id=f"{i}")
-                course = create_canvas_course(
-                    canvas_user=canvas_user, canvas_course_id=i + 10
-                )
-                enrollment = create_enrollment(course=course, student=student)
-                enrollment_repo.save_or_update(enrollment)
 
         with enrollment_repo.session():
             enrollments = enrollment_repo.list_all()
