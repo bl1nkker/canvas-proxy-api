@@ -1,5 +1,6 @@
-import numpy as np
 import cv2
+import numpy as np
+
 from ml import ml_model
 
 MIME_TYPE_TO_FORMAT = {

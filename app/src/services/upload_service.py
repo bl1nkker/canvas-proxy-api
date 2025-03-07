@@ -1,14 +1,14 @@
 import io
 import os
-from typing import Tuple, BinaryIO
+from typing import BinaryIO
+
 import shortuuid
-from sqlalchemy.orm.exc import NoResultFound
 
 from src.dto import file_record_dto
-from src.repositories.file_fs_repo import FileFsRepo
-from src.models import FileRecord
-from src.repositories.file_record_repo import FileRecordRepo
 from src.errors.types import NotFoundError
+from src.models import FileRecord
+from src.repositories.file_fs_repo import FileFsRepo
+from src.repositories.file_record_repo import FileRecordRepo
 
 
 class UploadService:
@@ -56,7 +56,7 @@ class UploadService:
 
     def get_upload_by_web_id(
         self, web_id: str
-    ) -> Tuple[file_record_dto.Read, BinaryIO]:
+    ) -> tuple[file_record_dto.Read, BinaryIO]:
         with self._file_record_repo.session():
             file_record = self._get_file_record_by_web_id(web_id)
             return self.read_from_dbmodel(file_record), open(file_record.path, "rb")
@@ -95,10 +95,7 @@ class UploadService:
             return self.metadata_from_dbmodel(file_record)
 
     def _get_file_record_by_web_id(self, web_id: str) -> FileRecord:
-        try:
-            file_record = self._file_record_repo.get_by_web_id(web_id)
-            if not os.path.exists(file_record.path):
-                raise NotFoundError(f"_error_msg_file_not_found:{web_id}")
-            return file_record
-        except NoResultFound:
+        file_record = self._file_record_repo.get_by_web_id(web_id)
+        if not os.path.exists(file_record.path):
             raise NotFoundError(f"_error_msg_file_not_found:{web_id}")
+        return file_record

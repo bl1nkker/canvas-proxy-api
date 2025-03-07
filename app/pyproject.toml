@@ -44,7 +44,7 @@ requests-mock = "^1.8.0"
 pytest-cov = "^4.1.0"
 
 pytest-asyncio = "^0.25.3"
-[tool.poetry.group.dev.dependencies]
+[tool.poetry.group.linter.dependencies]
 ruff = "^0.9.9"
 
 [tool.ruff]

@@ -1,8 +1,7 @@
 from collections import deque
 from contextlib import contextmanager
-from typing import Dict
 
-__scopes: Dict[int, deque] = {}
+__scopes: dict[int, deque] = {}
 
 
 def __enter_scope(session):

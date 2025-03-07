@@ -1,12 +1,12 @@
 import io
-import os
 import json
+import os
 import uuid
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional
 
-from utils.custom_mimetypes import mimetypes
 from fs_config import get_fs_config
+from utils.custom_mimetypes import mimetypes
 
 
 class FileFsRepo:
@@ -19,7 +19,7 @@ class FileFsRepo:
         return os.path.join(fs_config.file_storage_path, name)
 
     @staticmethod
-    def get_file_info(file_name: str) -> Optional[Tuple[str, int]]:
+    def get_file_info(file_name: str) -> Optional[tuple[str, int]]:
         fs_config = get_fs_config()
         file_path = os.path.join(fs_config.file_storage_path, file_name)
         if not os.path.exists(file_path):
