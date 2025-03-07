@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "canvas-proxy-api"
-version = "0.1.1a1"
+version = "0.1.1a2"
 description = ""
 authors = ["bl1nkker <nurovich14@gmail.com>"]
 
