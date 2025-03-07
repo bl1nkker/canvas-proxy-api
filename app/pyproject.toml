@@ -32,6 +32,8 @@ aiohttp = "^3.11.13"
 bcrypt = "^4.3.0"
 cryptography = "^44.0.2"
 httpx = "^0.28.1"
+celery = "^5.4.0"
+redis = "^5.2.1"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
