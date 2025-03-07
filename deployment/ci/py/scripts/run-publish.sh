@@ -77,7 +77,7 @@ catch() {
 }
 
 PROJECT=app
-MAIN_PACKAGE=app
+MAIN_PACKAGE=src
 
 set -eux
 python --version
