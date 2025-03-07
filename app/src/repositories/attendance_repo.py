@@ -21,7 +21,7 @@ class AttendanceRepo(DataRepo[Attendance]):
             self.query()
             .from_statement(
                 text(
-                    """SELECT * FROM app.attendances WHERE status = 'IN_PROGRESS' FOR UPDATE SKIP LOCKED LIMIT 1"""
+                    """SELECT * FROM app.attendances WHERE status = 'INITIATED' FOR UPDATE SKIP LOCKED LIMIT 1"""
                 )
             )
             .first()

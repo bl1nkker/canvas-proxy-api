@@ -24,7 +24,7 @@ class AttendanceProcessService:
     async def process_attendances(self):
         while True:
             try:
-                run = self.process_next_attendance()
+                run = await self.process_next_attendance()
                 if not run:
                     break
             except Exception as ex:
@@ -37,7 +37,7 @@ class AttendanceProcessService:
             if attendance is None:
                 return False
 
-            return self.process_single_attendance(attendance.id)
+            return await self.process_single_attendance(attendance.id)
 
     async def process_single_attendance(self, attendance_id: int) -> bool:
         with self._attendance_repo.session():
