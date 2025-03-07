@@ -125,10 +125,10 @@ class TestCanvasCourseRouter(BaseTest, WebApplicationTest):
                     "course_id": 228337,
                 },
                 "student": {
-                    "firstname": "Test",
-                    "lastname": "Testname",
-                    "email": "test@gmail.com",
                     "web_id": "web-id-4",
+                    "name": "Test Testname",
+                    "email": "test@gmail.com",
+                    "canvas_user_id": 1,
                 },
             },
             {
@@ -140,10 +140,10 @@ class TestCanvasCourseRouter(BaseTest, WebApplicationTest):
                     "course_id": 228337,
                 },
                 "student": {
-                    "firstname": "Test",
-                    "lastname": "Testname",
-                    "email": "test@gmail.com",
                     "web_id": "web-id-6",
+                    "name": "Test Testname",
+                    "email": "test@gmail.com",
+                    "canvas_user_id": 1,
                 },
             },
             {
@@ -155,10 +155,10 @@ class TestCanvasCourseRouter(BaseTest, WebApplicationTest):
                     "course_id": 228337,
                 },
                 "student": {
-                    "firstname": "Test",
-                    "lastname": "Testname",
-                    "email": "test@gmail.com",
                     "web_id": "web-id-8",
+                    "name": "Test Testname",
+                    "email": "test@gmail.com",
+                    "canvas_user_id": 1,
                 },
             },
         ]

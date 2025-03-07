@@ -29,6 +29,11 @@ class TestAuthService(BaseTest):
         assert user_data.dict(by_alias=True) == {
             "username": "test@gmail.com",
             "web_id": "web-id-1",
+            "canvas_user": {
+                "web_id": "web-id-2",
+                "canvas_id": 1,
+                "username": "canvas_test@gmail.com",
+            },
         }
         assert auth_data.dict(by_alias=True) == {
             "_csrf_token": "6D2%2FyVAKZOxBRl6qZW",
@@ -125,10 +130,12 @@ class TestAuthService(BaseTest):
         mock_get.return_value = canvas_ok_response
         mock_post.return_value = canvas_ok_response
         user_data, auth_data = await auth_service.create_user(dto=dto)
-        assert user_data.dict(by_alias=True) == {
-            "username": "test@gmail.com",
-            "web_id": "web-id-1",
-        }
+        data = user_data.dict(by_alias=True)
+        assert data["username"] == "test@gmail.com"
+        assert data["web_id"] == "web-id-1"
+        assert data["canvas_user"]["web_id"] == "web-id-2"
+        assert data["canvas_user"]["username"] == "test@gmail.com"
+
         assert auth_data.dict(by_alias=True) == {
             "_csrf_token": "6D2%2FyVAKZOxBRl6qZW",
             "_legacy_normandy_session": "pG-loNiNeyypme8vr5TO",

@@ -21,17 +21,17 @@ class TestStudentRouter(BaseTest, WebApplicationTest):
         data = response.json()
         assert data == {
             "course": {
+                "long_name": "test-long_name",
+                "short_name": "test-short_name",
+                "original_name": "test-original_name",
                 "course_code": "code-123",
                 "course_id": 228337,
-                "long_name": "test-long_name",
-                "original_name": "test-original_name",
-                "short_name": "test-short_name",
             },
             "student": {
-                "email": "test@gmail.com",
-                "firstname": "Test",
-                "lastname": "Testname",
                 "web_id": "web-id-1",
+                "name": "Test Testname",
+                "email": "test@gmail.com",
+                "canvas_user_id": 1,
             },
         }
 

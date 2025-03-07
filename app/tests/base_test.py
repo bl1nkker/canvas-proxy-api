@@ -246,7 +246,7 @@ class BaseTest(DbTest, FileFixtures):
         def _gen(
             username="test@gmail.com",
             password="test-pwd",
-            canvas_id="canvas-id-1",
+            canvas_id=1,
         ):
             user = sample_canvas_user(
                 username=username, password=password, canvas_id=canvas_id
@@ -327,8 +327,7 @@ class BaseTest(DbTest, FileFixtures):
         ):
             student = Student(
                 web_id=shortuuid.uuid(),
-                firstname=firstname,
-                lastname=lastname,
+                name=f"{firstname} {lastname}",
                 email=email,
                 canvas_user_id=canvas_user_id,
             )
