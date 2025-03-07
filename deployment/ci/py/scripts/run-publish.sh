@@ -109,18 +109,18 @@ NEW_VERSION=$(poetry version --short)
 git checkout pyproject.toml
 bump_version
 
-git remote set-url origin ${BITBUCKET_GIT_SSH_ORIGIN}
-git config user.name $BITBUCKET_GIT_USER
-git config user.email $BITBUCKET_GIT_USER
+git config user.name "${GITHUB_ACTOR}"
+git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+
 git add pyproject.toml
-
 git commit --allow-empty -m "[skip ci] === CI new version commit: ${PROJECT} ${NEW_VERSION} ==="
-git push --set-upstream origin $BITBUCKET_BRANCH
 
-git tag -a "${PROJECT}.${NEW_VERSION}" -m "$BITBUCKET_BRANCH - ${PROJECT} ${NEW_VERSION}"
+git push origin "${GITHUB_REF_NAME}"
+
+git tag -a "${PROJECT}.${NEW_VERSION}" -m "${GITHUB_REF_NAME} - ${PROJECT} ${NEW_VERSION}"
 git push origin --tags
 
-echo "export PROJECT=${PROJECT}" > "${BITBUCKET_CLONE_DIR}/publish.env"
-echo "export PROJECT_VERSION=${NEW_VERSION}" >> "${BITBUCKET_CLONE_DIR}/publish.env"
+echo "export PROJECT=${PROJECT}" > "publish.env"
+echo "export PROJECT_VERSION=${NEW_VERSION}" >> "publish.env"
 
 popd
