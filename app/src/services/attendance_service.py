@@ -71,7 +71,7 @@ class AttendanceService:
                 student_id=dto.student_id, query=query
             )
             if attendance is None:
-                raise NotFoundError(f"_error_msg_attendance_not_found:{dto.id}")
+                raise NotFoundError("_error_msg_attendance_not_found")
             attendance.status = AttendanceStatus.IN_PROGRESS.value
             attendance.value = dto.value
             self._attendance_repo.save_or_update(attendance)
