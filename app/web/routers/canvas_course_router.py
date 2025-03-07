@@ -5,6 +5,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
+from db.get_db_session import get_db_session
 from src.dto import attendance_dto, auth_dto, canvas_assignment_dto, canvas_course_dto
 from src.services.attendance_process_service import AttendanceProcessService
 from src.services.attendance_service import AttendanceService
@@ -12,7 +13,6 @@ from src.services.canvas_assignment_service import CanvasAssignmentService
 from src.services.canvas_course_service import CanvasCourseService
 from src.services.service_factory import service_factory
 from src.services.student_service import StudentService
-from web.depends.db import get_db_session
 from web.depends.get_canvas_cookies import get_canvas_auth_data
 from web.hooks.pagination_params import pagination_params
 

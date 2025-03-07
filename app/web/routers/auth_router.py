@@ -5,10 +5,10 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
+from db.get_db_session import get_db_session
 from src.dto import auth_dto
 from src.services.auth_service import AuthService
 from src.services.service_factory import service_factory
-from web.depends.db import get_db_session
 
 router = APIRouter(prefix="/api/auth/v1", tags=["Auth"])
 

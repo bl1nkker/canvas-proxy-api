@@ -1,14 +1,15 @@
-from typing import Annotated, Iterator
-from fastapi import APIRouter, Depends, status, UploadFile, File, HTTPException, Body
+from collections.abc import Iterator
+from typing import Annotated
+
+from fastapi import APIRouter, Body, Depends, File, HTTPException, UploadFile, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy.orm import Session
 
-from src.services.upload_service import UploadService
+from db.get_db_session import get_db_session
 from src.dto import file_record_dto
 from src.services.service_factory import service_factory
-
-from web.depends.db import get_db_session
+from src.services.upload_service import UploadService
 
 router = APIRouter(
     prefix="/api/uploads/v1",
