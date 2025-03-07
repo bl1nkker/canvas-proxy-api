@@ -20,6 +20,9 @@ jobs:
           name: publish-env
           path: publish.env
 
+      - name: Сheck publish.env
+        run: cat publish.env || (echo "Файл publish.env не найден!" && exit 1)
+
   docker-build:
     needs: publish
     runs-on: ubuntu-latest
