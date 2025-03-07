@@ -1,0 +1,51 @@
+name: publish-pyproject
+
+on:
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Publish Project
+        run: ./deployment/ci/py/scripts/run-publish.sh
+
+      - name: Save artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: publish-env
+          path: publish.env
+
+      - name: Сheck publish.env
+        run: cat publish.env || (echo "Файл publish.env не найден!" && exit 1)
+
+  docker-build:
+    needs: publish
+    runs-on: ubuntu-latest
+    services:
+      docker:
+        image: docker:latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: publish-env
+
+      - name: Build & Push Docker Image
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+        run: |
+          source publish.env
+          export DOCKER_IMAGE=blinkker/canvas-proxy-api:$PROJECT_VERSION
+          docker build --tag $DOCKER_IMAGE --file ./deployment/local/project/app/Dockerfile .
+          echo "$DOCKERHUB_PASSWORD" | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
+          docker push $DOCKER_IMAGE

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "canvas-proxy-api"
-version = "0.1.0"
+version = "0.1.1a5"
 description = ""
 authors = ["bl1nkker <nurovich14@gmail.com>"]
 
@@ -38,13 +38,15 @@ redis = "^5.2.1"
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.poetry.dev-dependencies]
+
 [tool.poetry.group.tests.dependencies]
 pytest = "^8.2.2"
 requests-mock = "^1.8.0"
 pytest-cov = "^4.1.0"
 
 pytest-asyncio = "^0.25.3"
-[tool.poetry.group.dev.dependencies]
+[tool.poetry.group.linter.dependencies]
 ruff = "^0.9.9"
 
 [tool.ruff]
