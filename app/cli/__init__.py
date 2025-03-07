@@ -1,7 +1,7 @@
 from cleo import Application
 
-from cli.dbinit import DbInitCommand
 from cli.dbdrop import DbDropCommand
+from cli.dbinit import DbInitCommand
 
 
 def main():

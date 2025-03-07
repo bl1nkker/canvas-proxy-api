@@ -2,17 +2,17 @@ import os
 from os import environ
 from pathlib import Path
 from threading import RLock
-from typing import Type, Callable, Dict, Optional
+from typing import Callable, Optional
 
 from .lock import with_lock
 from .read_config_file import read_config_file
 
 _config_lock = RLock()
-_config_cache: Dict[Type, object] = {}
+_config_cache: dict[type, object] = {}
 
 
 @with_lock(lock=_config_lock)
-def clear_config_cache(type: Optional[Type] = None):
+def clear_config_cache(type: Optional[type] = None):
     global _config_cache
 
     if type is None:
@@ -22,12 +22,12 @@ def clear_config_cache(type: Optional[Type] = None):
 
 
 def generate_get_config_method(
-    type: Type, get_config: Callable[[Callable[[str], str], bool], dict]
+    t: type, get_config: Callable[[Callable[[str], str], bool], dict]
 ):
     @with_lock(lock=_config_lock)
     def _method(file: str = "app.yaml", **defaults) -> type:
-        if type in _config_cache:
-            return _config_cache[type]
+        if t in _config_cache:
+            return _config_cache[t]
 
         yaml = read_config_file(file)
 
@@ -39,8 +39,8 @@ def generate_get_config_method(
 
         is_test = _get_value("PYTHON_ENV") == "test"
         config = get_config(_get_value, is_test)
-        _config_cache[type] = type(**config)
-        return _config_cache[type]
+        _config_cache[t] = t(**config)
+        return _config_cache[t]
 
     return _method
 

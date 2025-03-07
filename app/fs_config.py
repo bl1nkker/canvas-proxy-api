@@ -1,10 +1,9 @@
 from typing import Callable
 
-from utils import generate_get_config_method
 from pydantic import BaseModel
 from typing_extensions import Protocol
 
-from utils import replace_known_dirs
+from utils import generate_get_config_method, replace_known_dirs
 
 
 class FsConfig(BaseModel):

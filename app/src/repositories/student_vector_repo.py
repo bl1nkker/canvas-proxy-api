@@ -1,4 +1,5 @@
 import numpy as np
+
 from db.data_repo import DataRepo
 from src.models import StudentVector
 

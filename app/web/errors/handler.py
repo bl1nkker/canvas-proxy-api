@@ -1,17 +1,15 @@
-from typing import TypeVar, Callable
+from typing import Callable, TypeVar
 
-from sqlalchemy.orm.exc import StaleDataError
 import structlog
-
+from fastapi import Request, status
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError as PydanticValidationError
-from fastapi import Request, status
+from sqlalchemy.orm.exc import StaleDataError
 
-from web.errors.http_core_error import HttpCoreError
-from src.errors.core_errors import CoreErrors
 from src.errors.base_error import BaseError
+from src.errors.core_errors import CoreErrors
 from src.errors.types import ValidationError
-
+from web.errors.http_core_error import HttpCoreError
 
 BaseErrorType = TypeVar("BaseErrorType", bound=BaseError)
 

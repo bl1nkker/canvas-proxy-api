@@ -1,11 +1,11 @@
 import os
 import sys
-from typing import Optional, Dict, Union
+from typing import Optional, Union
 
 import yaml
 
 
-def read_config_file(file_name: str) -> Optional[Dict[str, Union[str, Dict]]]:
+def read_config_file(file_name: str) -> Optional[dict[str, Union[str, dict]]]:
     """
     Reads configuration from a YAML or .env file.
     """

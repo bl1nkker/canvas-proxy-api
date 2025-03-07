@@ -1,4 +1,4 @@
-from typing import TypeVar, List, Generic, Type, Optional
+from typing import Generic, Optional, TypeVar
 
 from sqlalchemy import desc
 from sqlalchemy.orm import Query
@@ -10,7 +10,7 @@ T = TypeVar("T", bound=DbModel)
 
 
 class Pagination(Generic[T]):
-    def __init__(self, page: int, page_size: int, total: int, items: List[T]):
+    def __init__(self, page: int, page_size: int, total: int, items: list[T]):
         self.page = page
         self.page_size = page_size
         self.total = total
@@ -18,7 +18,7 @@ class Pagination(Generic[T]):
 
 
 class DataRepo(BaseRepo, Generic[T]):
-    _type: Type[T]
+    _type: type[T]
     _order_by_map: dict
     _base_order_by_map: dict
 
@@ -51,7 +51,7 @@ class DataRepo(BaseRepo, Generic[T]):
         query = query or self.query()
         return query.first()
 
-    def list_all(self, query=None) -> List[T]:
+    def list_all(self, query=None) -> list[T]:
         query = query or self.query()
         return query.all()
 

@@ -31,7 +31,15 @@ class TestAuthRouter(BaseTest, WebApplicationTest):
         assert response.status_code == 200
 
         data = response.json()
-        assert data == {"username": "test@gmail.com", "web_id": "web-id-1"}
+        assert data == {
+            "username": "test@gmail.com",
+            "web_id": "web-id-1",
+            "canvas_user": {
+                "web_id": "web-id-2",
+                "canvas_id": 1,
+                "username": "canvas_test@gmail.com",
+            },
+        }
 
         assert "set-cookie" in response.headers
         raw_cookie = response.headers["set-cookie"]
@@ -94,7 +102,10 @@ class TestAuthRouter(BaseTest, WebApplicationTest):
         assert response.status_code == 200
 
         data = response.json()
-        assert data == {"username": "test@gmail.com", "web_id": "web-id-1"}
+        assert data["username"] == "test@gmail.com"
+        assert data["web_id"] == "web-id-1"
+        assert data["canvas_user"]["web_id"] == "web-id-2"
+        assert data["canvas_user"]["username"] == "test@gmail.com"
 
         assert "set-cookie" in response.headers
         raw_cookie = response.headers["set-cookie"]

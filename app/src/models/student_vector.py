@@ -1,6 +1,6 @@
-from sqlalchemy import Column, BigInteger, ForeignKey
-from sqlalchemy.orm import relationship
 from pgvector.sqlalchemy import Vector
+from sqlalchemy import BigInteger, Column, ForeignKey
+from sqlalchemy.orm import relationship
 
 from db import DbModel, HasWebId
 from src.models.base import Base

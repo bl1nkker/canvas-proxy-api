@@ -114,7 +114,9 @@ class TestEnrollmentRepo(BaseTest):
         enrollment = create_enrollment(course=course, student=student)
         for i in range(5):
             student = create_student()
-            canvas_user = create_canvas_user(username=f"{i}-user", canvas_id=f"{i}")
+            canvas_user = create_canvas_user(
+                username=f"{i}-user", canvas_id=f"{i + 10}"
+            )
             course = create_canvas_course(
                 canvas_user=canvas_user, canvas_course_id=i + 10
             )

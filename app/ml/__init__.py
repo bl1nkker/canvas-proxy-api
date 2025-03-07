@@ -1,10 +1,10 @@
 import os
-from ai_edge_litert.interpreter import Interpreter
-
-from fastapi import FastAPI
 from contextlib import asynccontextmanager
-from ml.model import MlModel
 
+from ai_edge_litert.interpreter import Interpreter
+from fastapi import FastAPI
+
+from ml.model import MlModel
 
 ml_model: MlModel = dict()
 
