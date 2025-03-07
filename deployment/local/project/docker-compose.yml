@@ -24,9 +24,9 @@ services:
     command: redis-server /usr/local/etc/redis/redis.conf
     networks:
       - apps
-  
+
   api:
-    image: blinkker/canvas-proxy-api:latest
+    image: blinkker/canvas-proxy-api:0.1.1a5
     command: api
     depends_on:
       - postgresql
@@ -41,7 +41,7 @@ services:
       - apps
 
   dbinit:
-    image: blinkker/canvas-proxy-api:latest
+    image: blinkker/canvas-proxy-api:0.1.1a5
     command: dbinit
     depends_on:
       - postgresql
@@ -51,7 +51,30 @@ services:
       DB_PORT: 5432
     networks:
       - apps
-
+  worker:
+    image: blinkker/canvas-proxy-api:0.1.1a5
+    command: celery-worker
+    depends_on:
+      - postgresql
+      - redis
+    environment:
+      DB_HOST: postgresql
+      DB_PORT: 5432
+      REDIS_HOST: redis
+    networks:
+      - apps
+  beat:
+    image: blinkker/canvas-proxy-api:0.1.1a5
+    command: celery-beat
+    depends_on:
+      - postgresql
+      - redis
+    environment:
+      DB_HOST: postgresql
+      DB_PORT: 5432
+      REDIS_HOST: redis
+    networks:
+      - apps
 
 volumes:
   postgres-data:
