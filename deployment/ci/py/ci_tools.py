@@ -33,7 +33,7 @@ def __get_project_dependencies(toml: PyProjectTOML) -> tomlkit.items.Table:
 
 
 def __get_project_dev_dependencies(toml: PyProjectTOML) -> tomlkit.items.Table:
-    return toml.poetry_config["linter-dependencies"]
+    return toml.poetry_config["dev-dependencies"]
 
 
 def __get_project_scripts(toml: PyProjectTOML) -> tomlkit.items.Table:
