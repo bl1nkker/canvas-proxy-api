@@ -1,4 +1,4 @@
-from sqlalchemy import Column, BigInteger, Integer, TIMESTAMP, text, func, String
+from sqlalchemy import TIMESTAMP, BigInteger, Column, Integer, String, func, text
 
 
 class HasWebId:

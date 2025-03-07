@@ -1,7 +1,7 @@
 from collections.abc import Iterator
 from typing import Annotated
 
-from fastapi import APIRouter, Body, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Body, Depends, File, UploadFile, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy.orm import Session
@@ -30,21 +30,18 @@ def get_service(db_session: Annotated[Session, Depends(get_db_session)]):
     description="Uploads a new file and returns the uploaded file data.",
 )
 def post_create_upload(
-    file: UploadFile = File(...),
-    upload_service: UploadService = Depends(get_service),
+    file: Annotated[UploadFile, File(...)],
+    upload_service: Annotated[UploadService, Depends(get_service)],
 ):
-    try:
-        dto = upload_service.create_upload(
-            name=file.filename,
-            content_type=file.content_type,
-            stream=file.file,
-            media=None,
-        )
-        return JSONResponse(
-            status_code=status.HTTP_201_CREATED, content=jsonable_encoder(dto)
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    dto = upload_service.create_upload(
+        name=file.filename,
+        content_type=file.content_type,
+        stream=file.file,
+        media=None,
+    )
+    return JSONResponse(
+        status_code=status.HTTP_201_CREATED, content=jsonable_encoder(dto)
+    )
 
 
 @router.get(
@@ -55,22 +52,20 @@ def post_create_upload(
 )
 def get_download_upload(
     web_id: str,
-    upload_service: UploadService = Depends(get_service),
+    upload_service: Annotated[UploadService, Depends(get_service)],
 ):
-    try:
-        record, stream = upload_service.get_upload_by_web_id(web_id=web_id)
 
-        def iterfile() -> Iterator[bytes]:
-            with stream:
-                while chunk := stream.read(1024):
-                    yield chunk
+    record, stream = upload_service.get_upload_by_web_id(web_id=web_id)
 
-        response = StreamingResponse(iterfile(), media_type=record.content_type)
-        response.headers["Content-Disposition"] = f"attachment; filename={record.name}"
+    def iterfile() -> Iterator[bytes]:
+        with stream:
+            while chunk := stream.read(1024):
+                yield chunk
 
-        return response
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    response = StreamingResponse(iterfile(), media_type=record.content_type)
+    response.headers["Content-Disposition"] = f"attachment; filename={record.name}"
+
+    return response
 
 
 @router.get(
@@ -82,15 +77,10 @@ def get_download_upload(
 )
 def get_metadata(
     web_id: str,
-    upload_service: UploadService = Depends(get_service),
+    upload_service: Annotated[UploadService, Depends(get_service)],
 ):
-    try:
-        dto = upload_service.get_metadata_by_web_id(web_id=web_id)
-        return JSONResponse(
-            status_code=status.HTTP_200_OK, content=jsonable_encoder(dto)
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    dto = upload_service.get_metadata_by_web_id(web_id=web_id)
+    return JSONResponse(status_code=status.HTTP_200_OK, content=jsonable_encoder(dto))
 
 
 @router.post(
@@ -101,20 +91,21 @@ def get_metadata(
     description="Creates metadata for an uploaded file and returns the created metadata.",
 )
 def post_create_metadata(
-    dto: file_record_dto.CreateMetadata = Body(
-        ...,
-        example={
-            "name": "Test File",
-            "file_name": "test_file.csv",
-            "content_type": "text/csv",
-        },
-    ),
-    upload_service: UploadService = Depends(get_service),
+    dto: Annotated[
+        file_record_dto.CreateMetadata,
+        Body(
+            ...,
+            example={
+                "name": "Test File",
+                "file_name": "test_file.csv",
+                "content_type": "text/csv",
+            },
+        ),
+    ],
+    upload_service: Annotated[UploadService, Depends(get_service)],
 ):
-    try:
-        dto = upload_service.create_metadata(dto=dto)
-        return JSONResponse(
-            status_code=status.HTTP_201_CREATED, content=jsonable_encoder(dto)
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+
+    dto = upload_service.create_metadata(dto=dto)
+    return JSONResponse(
+        status_code=status.HTTP_201_CREATED, content=jsonable_encoder(dto)
+    )

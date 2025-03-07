@@ -1,5 +1,6 @@
+from sqlalchemy import Column, Integer, String
+
 from db import DbModel, HasWebId
-from sqlalchemy import Column, String, Integer
 from src.models.base import Base
 
 
