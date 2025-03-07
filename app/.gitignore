@@ -1,1 +1,3 @@
 .coverage
+celerybeat-schedule
+dist/
