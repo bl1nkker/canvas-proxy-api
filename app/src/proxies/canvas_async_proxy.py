@@ -2,6 +2,7 @@ import json
 import re
 
 import aiohttp
+import structlog
 
 from src.dto import (
     attendance_dto,
@@ -46,6 +47,7 @@ class CanvasAsyncProxy:
     ATTENDANCE_GROUP_NAME = "Сабаққа қатысу/Посещаемость"
 
     def __init__(self, canvas_domain: str) -> None:
+        self._log = structlog.getLogger(__name__)
         self._canvas_domain = canvas_domain
 
     async def get_auth_data(
@@ -70,6 +72,7 @@ class CanvasAsyncProxy:
 
     async def get_courses(self, cookies: dict) -> canvas_course_dto.Read:
         url = f"{self._canvas_domain}/api/v1/dashboard/dashboard_cards"
+        self._log.info("fetching from Canvas", url=url)
         async with aiohttp.ClientSession() as session:
             async with session.get(url, cookies=cookies) as response:
                 response.raise_for_status()
@@ -90,6 +93,7 @@ class CanvasAsyncProxy:
             ("per_page", "100"),
         )
         url = url + "?" + "&".join([f"{param[0]}={param[1]}" for param in query_params])
+        self._log.info("fetching from Canvas", url=url)
         async with aiohttp.ClientSession() as session:
             async with session.get(url, cookies=cookies) as response:
                 response.raise_for_status()
@@ -133,6 +137,7 @@ class CanvasAsyncProxy:
         attendance_value: str,
     ) -> attendance_dto.CanvasRead:
         url = f"{self._canvas_domain}/api/v1/courses/{canvas_course_id}/assignments/{canvas_assignment_id}/submissions/{canvas_student_id}"
+        self._log.info("fetching from Canvas", url=url)
         headers = generate_canvas_header(cookies)
         data = {
             "submission": {
@@ -149,20 +154,19 @@ class CanvasAsyncProxy:
             data["submission"]["excuse"] = True
         else:
             data["submission"]["posted_grade"] = attendance_value.value
-        print(data)
         async with aiohttp.ClientSession() as session:
             async with session.put(
                 url, headers=headers, cookies=cookies, data=json.dumps(data)
             ) as response:
                 response.raise_for_status()
                 response_body = await response.json()
-                print(response_body)
                 return attendance_dto.CanvasRead.model_validate(response_body)
 
     async def get_course_students(
         self, canvas_course_id: int, cookies: dict
     ) -> list[student_dto.CanvasRead]:
         url = f"{self._canvas_domain}/api/v1/courses/{canvas_course_id}/users?include_inactive=true&include[]=email&include[]=enrollments&per_page=50"
+        self._log.info("fetching from Canvas", url=url)
         async with aiohttp.ClientSession() as session:
             async with session.get(url, cookies=cookies) as response:
                 response.raise_for_status()
@@ -181,6 +185,7 @@ class CanvasAsyncProxy:
         cookies: dict,
     ) -> str:
         url = f"{self._canvas_domain}/courses/{course_id}/assignments/new?submission_types=none&name=&due_at=null&points_possible=0&assignment_group_id={assignment_group_id}"
+        self._log.info("fetching from Canvas", url=url)
         cookies = cookies or {}
         async with session.get(url, cookies=cookies) as response:
             response.raise_for_status()
@@ -197,6 +202,7 @@ class CanvasAsyncProxy:
         cookies: auth_dto.CanvasAuthData,
     ) -> canvas_assignment_dto.Assignment:
         url = f"{self._canvas_domain}/api/v1/courses/{course_id}/assignments"
+        self._log.info("fetching from Canvas", url=url)
         cookies = cookies or {}
         headers = generate_canvas_header(cookies)
         async with session.post(
@@ -210,6 +216,7 @@ class CanvasAsyncProxy:
         self, session: aiohttp.ClientSession, cookies: dict = None
     ) -> dict:
         url = f"{self._canvas_domain}/login/canvas"
+        self._log.info("fetching from Canvas", url=url)
         cookies = cookies or {}
         async with session.get(url, cookies=cookies) as response:
             response.raise_for_status()
@@ -221,6 +228,7 @@ class CanvasAsyncProxy:
         self, session: aiohttp.ClientSession, email: str, password: str, cookies: dict
     ) -> dict:
         url = f"{self._canvas_domain}/login/canvas"
+        self._log.info("fetching from Canvas", url=url)
         csrf_token = decode_token(cookies.get("_csrf_token", ""))
         if not csrf_token:
             raise ValueError("CSRF-токен не найден в cookies")

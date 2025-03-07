@@ -1,3 +1,5 @@
+import structlog
+
 from src.dto import auth_dto
 from src.proxies.canvas_proxy_provider import CanvasProxyProvider
 from src.repositories.attendance_repo import AttendanceRepo
@@ -15,6 +17,7 @@ class AttendanceProcessService:
         student_repo: StudentRepo,
         canvas_proxy_provider_cls=CanvasProxyProvider,
     ):
+        self._log = structlog.getLogger(__name__)
         self._attendance_repo = attendance_repo
         self._student_repo = student_repo
         self._canvas_course_repo = canvas_course_repo
@@ -22,6 +25,7 @@ class AttendanceProcessService:
         self._canvas_proxy_provider = canvas_proxy_provider_cls()
 
     async def process_attendances(self):
+        self._log.debug('"process_attendances" called')
         while True:
             try:
                 run = await self.process_next_attendance()
@@ -30,8 +34,10 @@ class AttendanceProcessService:
             except Exception as ex:
                 self._log.exception(repr(ex), exc_info=True)
                 break
+        self._log.debug('returning from "process_attendances"')
 
     async def process_next_attendance(self):
+        self._log.debug('"process_next_attendance" called')
         with self._attendance_repo.session():
             attendance = self._attendance_repo.next_attendance_from_queue()
             if attendance is None:
@@ -40,6 +46,7 @@ class AttendanceProcessService:
             return await self.process_single_attendance(attendance.id)
 
     async def process_single_attendance(self, attendance_id: int) -> bool:
+        self._log.debug('"process_single_attendance" called')
         with self._attendance_repo.session():
             attendance = self._attendance_repo.get_by_db_id(db_id=attendance_id)
             student = self._student_repo.get_by_db_id(attendance.student_id)
@@ -61,4 +68,5 @@ class AttendanceProcessService:
             # Change attendance status to 'COMPLETED'
             attendance.status = "COMPLETED"
             self._attendance_repo.save_or_update(attendance)
+            self._log.debug('returning from "process_single_attendance"')
             return True
