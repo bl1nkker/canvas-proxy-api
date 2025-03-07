@@ -1,69 +1,146 @@
-# Canvas Proxy with Face Recog
+# Canvas Proxy with Face Recognition
 
-## Usage:
+## 🚀 Usage
 
-### Up docker services:
+### ✅ Enable Custom Git Hooks
 
+Configure Git to use the custom hooks:
+
+```sh
+git config core.hooksPath .githooks
+
+# Or using Makefile
+make enable-git-hooks
 ```
+
+### 🐳 Install and Run Docker Services
+
+Start all necessary services using Docker:
+
+```sh
 cd deployment/local && ./up.sh
 ```
 
-### Down docker services:
+### 📦 Install Dependencies with Poetry
 
+Make sure dependencies are installed:
+
+```sh
+cd app && poetry install --no-root
 ```
+
+### 🏗️ Initialize Database
+
+Set up the database schema:
+
+```sh
+cd app && poetry run cli dbinit
+```
+
+### 📜 Apply Alembic Migrations
+
+Run database migrations:
+
+```sh
+cd app && poetry run alembic upgrade head
+```
+
+### 🚀 Start API Server
+
+Run the API server:
+
+```sh
+cd app/web && poetry run python api.py
+
+# Or using Makefile
+make start
+```
+
+### ⚙️ Start Celery Workers
+
+Run background workers for async tasks:
+
+```sh
+# Celery Beat (Periodic Tasks)
+cd app && poetry run celery -A celery_app beat --loglevel=info
+
+# Celery Worker
+cd app && poetry run celery -A celery_app worker --loglevel=info
+```
+
+## 🛠 Extra Commands
+
+### ✅ Run Tests
+
+Execute unit tests:
+
+```sh
+cd app && poetry run pytest
+```
+
+### 🔍 Run Linter
+
+Check code quality:
+
+```sh
+cd app && poetry run ruff check .
+```
+
+### 🎨 Format Code
+
+Auto-format the codebase:
+
+```sh
+cd app && poetry run ruff format .
+```
+
+### 🛑 Stop Docker Services
+
+Shut down running containers:
+
+```sh
 cd deployment/local && ./down.sh
 ```
 
-### Init/Drop DB:
+### 🏗️ Initialize/Drop Test Database
 
-```
-cd app && poetry run cli dbinit
-cd app && poetry run cli dbdrop
-```
+Set up or remove the test database:
 
-### Init/Drop DB (Test):
-
-```
+```sh
 cd app && PYTHON_ENV=test poetry run cli dbinit
 cd app && PYTHON_ENV=test poetry run cli dbdrop
 ```
 
-### Install poetry deps:
+### 📜 Apply Alembic Migrations for Test Environment
 
-```
-poetry install --no-root
-```
+Run migrations in test mode:
 
-### Start API:
-
-```
-cd app/web && poetry run python api.py
+```sh
+cd app && PYTHON_ENV=test poetry run alembic upgrade head
 ```
 
-### Create Alembic Migration:
+### 📝 Create a New Alembic Migration
 
+Generate a new migration script:
+
+```sh
+cd app && poetry run alembic revision --autogenerate -m "<message>"
 ```
-alembic revision --autogenerate -m "<message>"
-```
 
-## TODOS:
+## 📝 TODOs
 
-1. Add vectorized database (pgvector or milvus)
-2. update face recognition service
-   1.2 Add hnsw index (by default?)
+- Improve ML for face recognition (FAISS, HNSW)
+- Add HNSW index (as default?)
+- Improve user existence check in Canvas
+- Add tests for Canvas-related functionality (wait-for-it)
 
-3. investigate how to fetch students on Canvas
-4. investigate how to mark students on Canvas
+### ⚠️ TEST EVERYTHING
 
-- Improve user existence in Canvas
-- Add tests for working canvas (wait-for-it)
+- Courses
+- Students
+- Enrollments
+- Attendance
 
-# Workers
+---
 
-1. add students worker
-2. add student attendance worker
-
-3. write tests for all of the above shit
-4. write ci/cd for github actions (tests, flake + publish_project (maybe for public sources like pypi, discuss with Timur))
-5. write Dockerfile
-6. [Optional] write git precommit
+If you have any issues or improvements, feel free to contribute! 🚀
