@@ -93,12 +93,7 @@ python deployment/ci/py/ci_tools.py include-path-dependencies "$PROJECT/pyprojec
 }
 
 bump_version() {
-  if [[ "$BITBUCKET_BRANCH" == "release/$PROJECT" ]]
-  then
-    echo 'no bumping version on release branch'
-  else
-    poetry version prerelease
-  fi
+  poetry version prerelease
 }
 
 pushd $PROJECT
