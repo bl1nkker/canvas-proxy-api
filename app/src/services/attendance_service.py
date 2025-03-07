@@ -72,7 +72,7 @@ class AttendanceService:
             )
             if attendance is None:
                 raise NotFoundError("_error_msg_attendance_not_found")
-            attendance.status = AttendanceStatus.IN_PROGRESS.value
+            attendance.status = AttendanceStatus.INITIATED
             attendance.value = dto.value
             self._attendance_repo.save_or_update(attendance)
         return attendance_dto.Read.from_dbmodel(attendance)
