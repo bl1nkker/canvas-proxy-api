@@ -147,7 +147,8 @@ class TestCanvasCourseService(BaseTest):
             courses = canvas_course_repo.list_all()
             assert len(courses) == len(sample_data.canvas_courses_data)
 
-    def test_get_course_enrollments(
+    @pytest.mark.asyncio
+    async def test_get_course_enrollments(
         self,
         canvas_course_service,
         create_student,
@@ -169,5 +170,7 @@ class TestCanvasCourseService(BaseTest):
             another_student = create_student()
             create_enrollment(course=another_course, student=another_student)
 
-        enrollments = canvas_course_service.get_course_enrollments(web_id=course.web_id)
+        enrollments = await canvas_course_service.get_course_enrollments(
+            web_id=course.web_id
+        )
         assert len(enrollments) == 3
