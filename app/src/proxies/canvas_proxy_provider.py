@@ -1,5 +1,11 @@
 from app_config import get_app_config
-from src.dto import auth_dto, canvas_assignment_dto, canvas_course_dto
+from src.dto import (
+    attendance_dto,
+    auth_dto,
+    canvas_assignment_dto,
+    canvas_course_dto,
+    student_dto,
+)
 from src.proxies.canvas_async_proxy import CanvasAsyncProxy
 
 
@@ -19,6 +25,14 @@ class CanvasProxyProvider:
             cookies=cookies.model_dump(by_alias=True),
         )
 
+    async def get_course_students(
+        self, canvas_course_id: int, cookies: auth_dto.CanvasAuthData
+    ) -> list[student_dto.CanvasRead]:
+        return await self._proxy.get_course_students(
+            canvas_course_id=canvas_course_id,
+            cookies=cookies.model_dump(by_alias=True),
+        )
+
     async def get_attendance_assignment_group(
         self, course_id: int, cookies: auth_dto.CanvasAuthData
     ) -> canvas_assignment_dto.AssignmentGroup:
@@ -33,4 +47,20 @@ class CanvasProxyProvider:
             course_id=course_id,
             assignment_group_id=assignment_group_id,
             cookies=cookies.model_dump(by_alias=True),
+        )
+
+    async def change_attendance_status(
+        self,
+        canvas_course_id: int,
+        canvas_assignment_id: int,
+        canvas_student_id: int,
+        cookies: auth_dto.CanvasAuthData,
+        attendance_value: str,
+    ) -> attendance_dto.CanvasRead:
+        return await self._proxy.change_attendance_status(
+            canvas_course_id=canvas_course_id,
+            canvas_assignment_id=canvas_assignment_id,
+            canvas_student_id=canvas_student_id,
+            cookies=cookies.model_dump(by_alias=True),
+            attendance_value=attendance_value,
         )

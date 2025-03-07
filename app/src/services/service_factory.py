@@ -7,6 +7,7 @@ from src.repositories.file_record_repo import FileRecordRepo
 from src.repositories.student_repo import StudentRepo
 from src.repositories.student_vector_repo import StudentVectorRepo
 from src.repositories.user_repo import UserRepo
+from src.services.attendance_process_service import AttendanceProcessService
 from src.services.attendance_service import AttendanceService
 from src.services.auth_service import AuthService
 from src.services.canvas_assignment_service import CanvasAssignmentService
@@ -84,49 +85,17 @@ class ServiceFactory:
             attendance_service=self.attendance_service(db_session=db_session),
         )
 
+    def attendance_process_service(self, db_session):
+        return AttendanceProcessService(
+            attendance_repo=self.attendance_repo(db_session=db_session),
+            auth_service=self.auth_service(db_session=db_session),
+            canvas_course_repo=self.canvas_course_repo(db_session=db_session),
+            student_repo=self.student_repo(db_session=db_session),
+        )
+
 
 _service_factory = ServiceFactory()
 
 
 def service_factory():
     return _service_factory
-
-
-# LAPnMFCKgtB6XHRWbmbMFn
-# {
-#       "firstname": "Timur",
-#       "lastname": "Narxoz",
-#       "email": "timur2@gmail.com",
-#       "web_id": "6vmBT3KYjX4axDmeYwQeNk"
-#     },
-#     {
-#       "firstname": "Timur",
-#       "lastname": "Bolotov",
-#       "email": "bolotov@gmail.com",
-#       "web_id": "KS7ft7MzLHjUrjNmc4Eiuf"
-#     },
-#     {
-#       "firstname": "Leha",
-#       "lastname": "Lepexa",
-#       "email": "lepexa@gmail.com",
-#       "web_id": "NFmsJ3DBuYTWENLWtiNtTZ"
-#     }
-# # h8jGeKXiUEE5wsA4BsMk2e
-# {
-#       "firstname": "Adinai",
-#       "lastname": "Sunny",
-#       "email": "anemoon@gmail.com",
-#       "web_id": "YhGt3buougBJdvwjviyUQM"
-#     },
-#     {
-#       "firstname": "Daniyar",
-#       "lastname": "Auyezkhan",
-#       "email": "dandan@gmail.com",
-#       "web_id": "dF6xrRxgR3poLrRM45yB5s"
-#     },
-#     {
-#       "firstname": "Temir",
-#       "lastname": "Sandybekov",
-#       "email": "temirgali@gmail.com",
-#       "web_id": "9UbyKVRkGBdyQbN4Sy2JGV"
-#     }

@@ -54,5 +54,5 @@ class CanvasAssignmentService:
                 status=AttendanceStatus.INITIATED,
                 value=AttendanceValue.INCOMPLETE,
             )
-            self._attendance_service.create_attendance(dto=dto)
+            self._attendance_service.create_attendance(web_id=web_id, dto=dto)
         return assignment

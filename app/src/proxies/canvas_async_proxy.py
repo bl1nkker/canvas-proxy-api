@@ -3,8 +3,29 @@ import re
 
 import aiohttp
 
-from src.dto import auth_dto, canvas_assignment_dto, canvas_course_dto
+from src.dto import (
+    attendance_dto,
+    auth_dto,
+    canvas_assignment_dto,
+    canvas_course_dto,
+    student_dto,
+)
+from src.enums.attendance_value import AttendanceValue
 from utils.generate_canvas_assignment_data import generate_canvas_assignment_data
+
+
+def is_student(course_id: int, user_dict: dict) -> bool:
+    course_enrollment = next(
+        (
+            enrollment
+            for enrollment in user_dict.get("enrollments", [])
+            if enrollment["course_id"] == course_id
+        ),
+        None,
+    )
+    return (
+        course_enrollment["type"] == "StudentEnrollment" if course_enrollment else False
+    )
 
 
 def decode_token(token):
@@ -12,6 +33,13 @@ def decode_token(token):
 
     csrf_token = token
     return urllib.parse.unquote(csrf_token)
+
+
+def generate_canvas_header(cookies):
+    return {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": decode_token(cookies["_csrf_token"]),
+    }
 
 
 class CanvasAsyncProxy:
@@ -96,6 +124,55 @@ class CanvasAsyncProxy:
             )
             return assignment
 
+    async def change_attendance_status(
+        self,
+        canvas_course_id: int,
+        canvas_assignment_id: int,
+        canvas_student_id: int,
+        cookies: dict,
+        attendance_value: str,
+    ) -> attendance_dto.CanvasRead:
+        url = f"{self._canvas_domain}/api/v1/courses/{canvas_course_id}/assignments/{canvas_assignment_id}/submissions/{canvas_student_id}"
+        headers = generate_canvas_header(cookies)
+        data = {
+            "submission": {
+                "assignment_id": canvas_assignment_id,
+                "user_id": canvas_student_id,
+                "excuse": False,
+                "posted_grade": None,
+            },
+            "include": ["visibility"],
+            "prefer_points_over_scheme": False,
+            "originator": "gradebook",
+        }
+        if attendance_value is AttendanceValue.EXCUSE:
+            data["submission"]["excuse"] = True
+        else:
+            data["submission"]["posted_grade"] = attendance_value.value
+        print(data)
+        async with aiohttp.ClientSession() as session:
+            async with session.put(
+                url, headers=headers, cookies=cookies, data=json.dumps(data)
+            ) as response:
+                response.raise_for_status()
+                response_body = await response.json()
+                print(response_body)
+                return attendance_dto.CanvasRead.model_validate(response_body)
+
+    async def get_course_students(
+        self, canvas_course_id: int, cookies: dict
+    ) -> list[student_dto.CanvasRead]:
+        url = f"{self._canvas_domain}/api/v1/courses/{canvas_course_id}/users?include_inactive=true&include[]=email&include[]=enrollments&per_page=50"
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, cookies=cookies) as response:
+                response.raise_for_status()
+                response_body = await response.json()
+                return [
+                    student_dto.CanvasRead.model_validate(item)
+                    for item in response_body
+                    if is_student(canvas_course_id, item)
+                ]
+
     async def _get_assignment_secure_params(
         self,
         session: aiohttp.ClientSession,
@@ -121,10 +198,7 @@ class CanvasAsyncProxy:
     ) -> canvas_assignment_dto.Assignment:
         url = f"{self._canvas_domain}/api/v1/courses/{course_id}/assignments"
         cookies = cookies or {}
-        headers = {
-            "Content-Type": "application/json",
-            "X-CSRF-Token": decode_token(cookies["_csrf_token"]),
-        }
+        headers = generate_canvas_header(cookies)
         async with session.post(
             url, headers=headers, data=json.dumps(data), cookies=cookies
         ) as response:

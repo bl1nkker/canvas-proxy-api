@@ -51,7 +51,7 @@ class AuthService:
             )
             canvas_user.set_password(password=dto.password)
             self._canvas_user_repo.save_or_update(canvas_user)
-        return auth_dto.UserData(username=user.username, web_id=user.web_id), auth_data
+        return auth_dto.UserData.from_dbmodel(user), auth_data
 
     async def get_canvas_auth_data(
         self, dto: auth_dto.LoginRequest
@@ -74,6 +74,6 @@ class AuthService:
             )
         )
         return (
-            auth_dto.UserData(username=user.username, web_id=user.web_id, id=user.id),
+            auth_dto.UserData.from_dbmodel(user),
             auth_data,
         )

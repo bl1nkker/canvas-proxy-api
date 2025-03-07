@@ -5,14 +5,24 @@ from tests.base_test import BaseTest
 
 
 class TestAttendanceRepo(BaseTest):
-    def test_create_assignment(self, create_student, attendance_repo, cleanup_all):
+    def test_create_assignment(
+        self,
+        create_student,
+        attendance_repo,
+        create_canvas_user,
+        create_canvas_course,
+        cleanup_all,
+    ):
         student = create_student()
+        canvas_user = create_canvas_user(username="user")
+        course = create_canvas_course(canvas_user=canvas_user)
         with attendance_repo.session():
             attendance = Attendance(
                 student=student,
                 canvas_assignment_id=10,
                 status=AttendanceStatus.INITIATED,
                 value=AttendanceValue.COMPLETE,
+                course_id=course.id,
             )
             attendance_repo.save_or_update(attendance)
         with attendance_repo.session():
@@ -24,21 +34,37 @@ class TestAttendanceRepo(BaseTest):
             assert atts[0].value is AttendanceValue.COMPLETE
 
     def test_get_assignment_by_db_id(
-        self, create_attendance, create_student, attendance_repo, cleanup_all
+        self,
+        create_attendance,
+        create_student,
+        create_canvas_user,
+        create_canvas_course,
+        attendance_repo,
+        cleanup_all,
     ):
         student = create_student()
-        att = create_attendance(student=student, canvas_assignment_id=2)
+        canvas_user = create_canvas_user(username="user")
+        course = create_canvas_course(canvas_user=canvas_user)
+        att = create_attendance(student=student, canvas_assignment_id=2, course=course)
         for _ in range(5):
-            create_attendance(student=student)
+            create_attendance(student=student, course=course)
         with attendance_repo.session():
             att = attendance_repo.get_by_db_id(db_id=att.id)
             assert att.canvas_assignment_id == 2
 
     def test_update_assignment(
-        self, create_attendance, create_student, attendance_repo, cleanup_all
+        self,
+        create_attendance,
+        create_student,
+        attendance_repo,
+        create_canvas_user,
+        create_canvas_course,
+        cleanup_all,
     ):
+        canvas_user = create_canvas_user(username="user")
+        course = create_canvas_course(canvas_user=canvas_user)
         student = create_student()
-        att = create_attendance(student=student, canvas_assignment_id=1)
+        att = create_attendance(student=student, canvas_assignment_id=1, course=course)
         with attendance_repo.session():
             att = attendance_repo.get_by_db_id(db_id=att.id)
             att.canvas_assignment_id = 2
@@ -52,10 +78,18 @@ class TestAttendanceRepo(BaseTest):
             assert att.value == AttendanceValue.INCOMPLETE
 
     def test_delete_assignment(
-        self, create_attendance, create_student, attendance_repo, cleanup_all
+        self,
+        create_attendance,
+        create_student,
+        create_canvas_user,
+        create_canvas_course,
+        attendance_repo,
+        cleanup_all,
     ):
+        canvas_user = create_canvas_user(username="user")
+        course = create_canvas_course(canvas_user=canvas_user)
         student = create_student()
-        att = create_attendance(student=student)
+        att = create_attendance(student=student, course=course)
         with attendance_repo.session():
             attendance_repo.delete(att)
         with attendance_repo.session():

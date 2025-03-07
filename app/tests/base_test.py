@@ -319,12 +319,18 @@ class BaseTest(DbTest, FileFixtures):
 
     @pytest.fixture
     def sample_student(self, patch_shortuuid):
-        def _gen(firstname="Test", lastname="Testname", email="test@gmail.com"):
+        def _gen(
+            firstname="Test",
+            lastname="Testname",
+            email="test@gmail.com",
+            canvas_user_id=1,
+        ):
             student = Student(
                 web_id=shortuuid.uuid(),
                 firstname=firstname,
                 lastname=lastname,
                 email=email,
+                canvas_user_id=canvas_user_id,
             )
             return student
 
@@ -332,9 +338,17 @@ class BaseTest(DbTest, FileFixtures):
 
     @pytest.fixture
     def create_student(self, sample_student, student_repo) -> CanvasCourse:
-        def _gen(firstname="Test", lastname="Testname", email="test@gmail.com"):
+        def _gen(
+            firstname="Test",
+            lastname="Testname",
+            email="test@gmail.com",
+            canvas_user_id=1,
+        ):
             student = sample_student(
-                firstname=firstname, lastname=lastname, email=email
+                firstname=firstname,
+                lastname=lastname,
+                email=email,
+                canvas_user_id=canvas_user_id,
             )
             with student_repo.session():
                 student = student_repo.save_or_update(student)
@@ -346,11 +360,13 @@ class BaseTest(DbTest, FileFixtures):
     def sample_attendance(self):
         def _gen(
             student,
+            course,
             canvas_assignment_id=1,
             status=AttendanceStatus.INITIATED,
             value=AttendanceValue.COMPLETE,
         ):
             att = Attendance(
+                course_id=course.id,
                 student_id=student.id,
                 canvas_assignment_id=canvas_assignment_id,
                 status=status,
@@ -364,11 +380,13 @@ class BaseTest(DbTest, FileFixtures):
     def create_attendance(self, sample_attendance, attendance_repo) -> CanvasCourse:
         def _gen(
             student,
+            course,
             canvas_assignment_id=1,
             status=AttendanceStatus.INITIATED,
             value=AttendanceValue.COMPLETE,
         ):
             att = sample_attendance(
+                course=course,
                 student=student,
                 canvas_assignment_id=canvas_assignment_id,
                 status=status,

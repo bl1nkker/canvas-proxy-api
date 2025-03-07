@@ -1,4 +1,6 @@
-from pydantic import BaseModel
+from typing import Optional
+
+from pydantic import BaseModel, Field
 
 from src.dto import student_dto
 from src.enums.attendance_status import AttendanceStatus
@@ -26,3 +28,16 @@ class Read(BaseModel):
             value=dbmodel.value,
             student=student_dto.Read.from_dbmodel(dbmodel.student),
         )
+
+
+class Mark(BaseModel):
+    value: AttendanceValue
+    student_id: int
+
+
+class CanvasRead(BaseModel):
+    canvas_assignment_id: int = Field(validation_alias="assignment_id")
+    student_id: int = Field(validation_alias="user_id")
+    graded_at: str = Field(validation_alias="graded_at")
+    excused: bool = Field(validation_alias="excused")
+    grade: Optional[str] = Field(validation_alias="grade")
