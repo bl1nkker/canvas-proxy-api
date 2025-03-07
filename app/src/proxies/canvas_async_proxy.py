@@ -66,11 +66,12 @@ class CanvasAsyncProxy:
             async with session.get(url, cookies=cookies) as response:
                 response.raise_for_status()
                 response_body = await response.json()
-                return [
-                    canvas_assignment_dto.AssignmentGroup.model_validate(item)
-                    for item in response_body
-                    if item["name"] == self.ATTENDANCE_GROUP_NAME
-                ][0]
+                for item in response_body:
+                    if item["name"] == self.ATTENDANCE_GROUP_NAME:
+                        return canvas_assignment_dto.AssignmentGroup.model_validate(
+                            item
+                        )
+                return None
 
     async def create_assignment(
         self,

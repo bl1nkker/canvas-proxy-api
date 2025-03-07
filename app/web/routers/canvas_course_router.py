@@ -86,12 +86,12 @@ async def create_assignment(
 
 
 @router.get("/{web_id}/assignments/{assignment_id}")
-async def list_attendance_by_assignment_id(
+def list_attendance_by_assignment_id(
     web_id: str,
     assignment_id: int,
     service: Annotated[AttendanceService, Depends(get_attendance_service)],
 ):
-    result = await service.list_attendance_by_assignment_id(
+    result = service.list_attendance_by_assignment_id(
         web_id=web_id, assignment_id=assignment_id
     )
     return JSONResponse(
