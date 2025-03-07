@@ -1,0 +1,79 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:12.2
+        env:
+          POSTGRES_PASSWORD: bl1nkker
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:5.0.7
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Run Tests
+        run: ./deployment/ci/py/scripts/run-tests.sh
+
+  publish:
+    needs: tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Publish Project
+        run: ./deployment/ci/py/scripts/run-publish.sh
+
+      - name: Save artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: publish-env
+          path: publish.env
+
+  docker-build:
+    needs: publish
+    runs-on: ubuntu-latest
+    services:
+      docker:
+        image: docker:latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: publish-env
+
+      - name: Build & Push Docker Image
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+        run: |
+          source publish.env
+          export DOCKER_IMAGE=blinkker/canvas-proxy-api:$PROJECT_VERSION
+          docker build --tag $DOCKER_IMAGE --file ./deployment/local/project/app/Dockerfile .
+          echo "$DOCKERHUB_PASSWORD" | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
+          docker push $DOCKER_IMAGE
