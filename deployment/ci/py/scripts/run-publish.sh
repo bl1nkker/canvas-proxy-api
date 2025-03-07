@@ -115,8 +115,7 @@ git push origin "${GITHUB_REF_NAME}"
 git tag -a "${PROJECT}.${NEW_VERSION}" -m "${GITHUB_REF_NAME} - ${PROJECT} ${NEW_VERSION}"
 git push origin --tags
 
-echo "export PROJECT=${PROJECT}" > "${BITBUCKET_CLONE_DIR}/publish.env"
-echo "export PROJECT_VERSION=${NEW_VERSION}" >> "${BITBUCKET_CLONE_DIR}/publish.env"
-
+echo "export PROJECT=${PROJECT}" > "${github.workspace}/publish.env"
+echo "export PROJECT_VERSION=${NEW_VERSION}" >> "${github.workspace}/publish.env"
 
 popd
