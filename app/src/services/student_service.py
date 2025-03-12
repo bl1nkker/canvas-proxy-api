@@ -61,8 +61,7 @@ class StudentService:
         with self._student_repo.session():
             student = Student(
                 web_id=shortuuid.uuid(),
-                firstname=dto.firstname,
-                lastname=dto.lastname,
+                name=dto.name,
                 email=dto.email,
                 canvas_user_id=dto.canvas_user_id,
             )

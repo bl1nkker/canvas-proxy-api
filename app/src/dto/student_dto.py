@@ -4,8 +4,7 @@ from pydantic import BaseModel, Field
 
 
 class Create(BaseModel):
-    firstname: str
-    lastname: str
+    name: str
     email: str
     canvas_user_id: int
 

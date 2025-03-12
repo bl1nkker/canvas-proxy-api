@@ -1,4 +1,3 @@
-from functools import partial
 from typing import Annotated
 
 from fastapi import APIRouter, Body, Depends, File, UploadFile, status
@@ -10,7 +9,6 @@ from db.get_db_session import get_db_session
 from src.dto import student_dto
 from src.services.service_factory import service_factory
 from src.services.student_service import StudentService
-from web.hooks.validate_content_type import validate_content_type
 
 router = APIRouter(prefix="/api/students/v1", tags=["Students"])
 
@@ -75,7 +73,7 @@ async def enroll_student(
 
 @router.post(
     "/{web_id}/image",
-    dependencies=[Depends(partial(validate_content_type, ["image/jpeg"]))],
+    # dependencies=[Depends(partial(validate_content_type, ["image/jpeg"]))],
 )
 async def save_student_image(
     web_id: str,
@@ -95,7 +93,7 @@ async def save_student_image(
 
 @router.post(
     "/search",
-    dependencies=[Depends(partial(validate_content_type, ["image/jpeg"]))],
+    # dependencies=[Depends(partial(validate_content_type, ["image/jpeg"]))],
 )
 async def search_student_by_image(
     service: Annotated[StudentService, Depends(get_service)],
