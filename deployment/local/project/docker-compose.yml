@@ -1,5 +1,14 @@
 version: "3"
 services:
+  nginx:
+    image: nginx:1.19.4
+    depends_on:
+      - api
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "80:80"
+
   postgresql:
     image: pgvector/pgvector:pg17
     ports:
@@ -9,8 +18,16 @@ services:
       - postgres-data:/var/lib/postgresql/data
     environment:
       - POSTGRES_PASSWORD=bl1nkker
-    networks:
-      - apps
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=bl1nkker@gmail.com
+      - PGADMIN_DEFAULT_PASSWORD=@dm1n
+      - PGADMIN_LISTEN_PORT=5050
+      - PGADMIN_DISABLE_POSTFIX=true
+    ports:
+      - "5050:5050"
 
   redis:
     image: redis:5.0.7
@@ -22,8 +39,6 @@ services:
     sysctls:
       - net.core.somaxconn=511
     command: redis-server /usr/local/etc/redis/redis.conf
-    networks:
-      - apps
 
   api:
     image: blinkker/canvas-proxy-api:0.1.1a5
@@ -37,8 +52,6 @@ services:
     environment:
       DB_HOST: postgresql
       DB_PORT: 5432
-    networks:
-      - apps
 
   dbinit:
     image: blinkker/canvas-proxy-api:0.1.1a5
@@ -49,8 +62,6 @@ services:
     environment:
       DB_HOST: postgresql
       DB_PORT: 5432
-    networks:
-      - apps
   worker:
     image: blinkker/canvas-proxy-api:0.1.1a5
     command: celery-worker
@@ -61,8 +72,6 @@ services:
       DB_HOST: postgresql
       DB_PORT: 5432
       REDIS_HOST: redis
-    networks:
-      - apps
   beat:
     image: blinkker/canvas-proxy-api:0.1.1a5
     command: celery-beat
@@ -73,13 +82,7 @@ services:
       DB_HOST: postgresql
       DB_PORT: 5432
       REDIS_HOST: redis
-    networks:
-      - apps
 
 volumes:
   postgres-data:
   redis-data:
-
-networks:
-  apps:
-    driver: bridge
