@@ -1,11 +1,13 @@
-[tool.poetry]
+[project]
 name = "canvas-proxy-api"
 version = "0.1.1a8"
 description = ""
-authors = ["bl1nkker <nurovich14@gmail.com>"]
+authors = [{name = "bl1nkker", email = "nurovich14@gmail.com"}]
 
+[tool.poetry]
 packages = [
-    { include = "src" }
+    { include = "src" },
+    { include = "web" }
 ]
 
 [tool.poetry.dependencies]
@@ -24,7 +26,7 @@ asgi-correlation-id = "^4.3.4"
 
 alembic = "^1.14.1"
 pillow = "^11.1.0"
-ai-edge-litert = "^1.1.2"
+ai-edge-litert = "^1.2.0"
 opencv-python = "^4.11.0.86"
 shortuuid = "^1.0.13"
 pgvector = "^0.3.6"
@@ -38,7 +40,7 @@ redis = "^5.2.1"
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.poetry.dev-dependencies]
+[poetry.group.dev.dependencies]
 
 [tool.poetry.group.tests.dependencies]
 pytest = "^8.2.2"

@@ -17,8 +17,9 @@ class AttendanceRepo(DataRepo[Attendance]):
         return query.filter(Attendance.student_id == student_id).first()
 
     def next_attendance_from_queue(self, query=None):
+        query = query or self.query()
         return (
-            self.query()
+            query
             .from_statement(
                 text(
                     """SELECT * FROM app.attendances WHERE status = 'INITIATED' or status = 'IN_PROGRESS' FOR UPDATE SKIP LOCKED LIMIT 1"""

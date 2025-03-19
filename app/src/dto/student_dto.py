@@ -16,16 +16,16 @@ class CanvasRead(BaseModel):
 
 
 class Read(BaseModel):
+    id: int
     web_id: Optional[str]
     name: str
     email: str
-    canvas_user_id: int
 
     @classmethod
     def from_dbmodel(cls, item):
         return cls(
+            id=item.id,
             name=item.name,
             email=item.email,
             web_id=item.web_id,
-            canvas_user_id=item.canvas_user_id,
         )

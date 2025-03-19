@@ -43,13 +43,12 @@ class StudentService:
             students = self._student_repo.list_paged(
                 page=page, page_size=page_size, query=query
             )
+            items = [student_dto.Read.from_dbmodel(student) for student in students.items]
         return Pagination(
             page=students.page,
             page_size=students.page_size,
             total=students.total,
-            items=[
-                student_dto.Read.from_dbmodel(student) for student in students.items
-            ],
+            items=items,
         )
 
     def get_student_by_web_id(self, web_id: str) -> student_dto.Read:
