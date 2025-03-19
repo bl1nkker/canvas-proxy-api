@@ -2,7 +2,7 @@
 
 set -eux
 
-curl -sSL https://install.python-poetry.org | python - --version 1.7.1
+curl -sSL https://install.python-poetry.org | python - --version 2.1.1
 export PATH="/root/.local/bin:$PATH"
 poetry --version
 
