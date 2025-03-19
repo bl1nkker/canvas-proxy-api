@@ -2,15 +2,15 @@ from pydantic import BaseModel, Field
 
 
 class ReadCanvasUser(BaseModel):
+    id: int
     web_id: str
-    canvas_id: int
     username: str
 
     @classmethod
     def from_dbmodel(cls, item):
         return cls(
+            id=item.id,
             web_id=item.web_id,
-            canvas_id=item.canvas_id,
             username=item.username,
         )
 

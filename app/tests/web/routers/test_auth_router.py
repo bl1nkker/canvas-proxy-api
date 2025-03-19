@@ -36,7 +36,7 @@ class TestAuthRouter(BaseTest, WebApplicationTest):
             "web_id": "web-id-1",
             "canvas_user": {
                 "web_id": "web-id-2",
-                "canvas_id": 1,
+                "id": 1,
                 "username": "canvas_test@gmail.com",
             },
         }
