@@ -33,7 +33,9 @@ def __get_project_dependencies(toml: PyProjectTOML) -> tomlkit.items.Table:
 
 
 def __get_project_dev_dependencies(toml: PyProjectTOML) -> tomlkit.items.Table:
-    return toml.poetry_config["dev-dependencies"]
+    if "group" in toml.poetry_config and "dev" in toml.poetry_config["group"]:
+        return toml.poetry_config["group"]["dev"]["dependencies"]
+    return toml.poetry_config.get("dev-dependencies", tomlkit.table())
 
 
 def __get_project_scripts(toml: PyProjectTOML) -> tomlkit.items.Table:
