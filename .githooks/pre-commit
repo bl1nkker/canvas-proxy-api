@@ -24,7 +24,9 @@ def get_commit_message():
 def is_valid_commit_message(message):
     if "Merge branch" in message:
         return True
-    return bool(re.search(r"^(feat|fix|chore|ci)(\(.+\))?:\s", message, re.IGNORECASE))
+    return bool(
+        re.search(r"^(feat|fix|chore|ci|test)(\(.+\))?:\s", message, re.IGNORECASE)
+    )
 
 
 def start_processes(processes):
