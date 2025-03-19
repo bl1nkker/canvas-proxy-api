@@ -4,8 +4,10 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 import shortuuid
+from sqlalchemy.sql import text
 
 from app_config import AppConfig, get_app_config
+from db.base_repo import BaseRepo
 from src.enums.attendance_status import AttendanceStatus
 from src.enums.attendance_value import AttendanceValue
 from src.models import CanvasUser, FileRecord, User
@@ -13,7 +15,6 @@ from src.models.attendance import Attendance
 from src.models.canvas_course import CanvasCourse
 from src.models.enrollment import Enrollment
 from src.models.student import Student
-from src.models.student_vector import StudentVector
 from src.repositories.attendance_repo import AttendanceRepo
 from src.repositories.canvas_course_repo import CanvasCourseRepo
 from src.repositories.canvas_user_repo import CanvasUserRepo
@@ -38,6 +39,10 @@ class BaseTest(DbTest, FileFixtures):
     @pytest.fixture
     def app_config(self) -> AppConfig:
         return get_app_config()
+
+    @pytest.fixture
+    def base_repo(self, db_session):
+        return BaseRepo(db_session)
 
     @pytest.fixture
     def file_record_repo(self, db_session):
@@ -143,65 +148,25 @@ class BaseTest(DbTest, FileFixtures):
         monkeypatch.setattr(shortuuid, "uuid", web_id)
 
     @pytest.fixture
-    def cleanup_all(
-        self,
-        cleanup_file_records,
-        cleanup_users,
-        cleanup_canvas_users,
-        cleanup_canvas_courses,
-        cleanup_students,
-        cleanup_enrollments,
-        cleanup_attendance,
-    ):
-        pass
-
-    @pytest.fixture
-    def cleanup_file_records(self, file_record_repo):
+    def cleanup_all(self, base_repo):
+        # order matters
+        models = [
+            Enrollment,
+            Attendance,
+            Student,
+            CanvasUser,
+            CanvasCourse,
+            User,
+            FileRecord,
+        ]
         yield
-        with file_record_repo.session():
-            file_record_repo.query(FileRecord).delete()
-
-    @pytest.fixture
-    def cleanup_users(self, user_repo):
-        yield
-        with user_repo.session():
-            user_repo.query(User).delete()
-
-    @pytest.fixture
-    def cleanup_canvas_users(self, canvas_user_repo):
-        yield
-        with canvas_user_repo.session():
-            canvas_user_repo.query(CanvasUser).delete()
-
-    @pytest.fixture
-    def cleanup_canvas_courses(self, canvas_course_repo):
-        yield
-        with canvas_course_repo.session():
-            canvas_course_repo.query(CanvasCourse).delete()
-
-    @pytest.fixture
-    def cleanup_enrollments(self, enrollment_repo):
-        yield
-        with enrollment_repo.session():
-            enrollment_repo.query(Enrollment).delete()
-
-    @pytest.fixture
-    def cleanup_students(self, student_repo):
-        yield
-        with student_repo.session():
-            student_repo.query(Student).delete()
-
-    @pytest.fixture
-    def cleanup_attendance(self, attendance_repo):
-        yield
-        with attendance_repo.session():
-            attendance_repo.query(Attendance).delete()
-
-    @pytest.fixture
-    def cleanup_student_vectors(self, student_vector_repo):
-        yield
-        with student_vector_repo.session():
-            student_vector_repo.query(StudentVector).delete()
+        with base_repo.session() as session:
+            for mdl in models:
+                session.query(mdl).delete()
+                stmt = text(
+                    f"ALTER SEQUENCE {mdl.__table_args__['schema']}.{mdl.__tablename__}_id_seq RESTART WITH 1"
+                )
+                session.execute(stmt)
 
     @pytest.fixture
     def sample_user(self, patch_shortuuid) -> User:

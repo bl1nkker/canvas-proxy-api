@@ -75,7 +75,7 @@ class CanvasCourseService:
             for course in canvas_courses:
                 # check if course already exists
                 existing_course = self._canvas_course_repo.get_by_canvas_course_id(
-                    canvas_course_id=course.course_id
+                    canvas_course_id=course.canvas_course_id
                 )
                 if existing_course is not None:
                     continue
@@ -85,7 +85,7 @@ class CanvasCourseService:
                     short_name=course.short_name,
                     original_name=course.original_name,
                     course_code=course.course_code,
-                    canvas_course_id=course.course_id,
+                    canvas_course_id=course.canvas_course_id,
                     canvas_user_id=canvas_user.id,
                 )
                 created_courses.append(

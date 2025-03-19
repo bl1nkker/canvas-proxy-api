@@ -105,7 +105,7 @@ class TestGenerateCanvasAssignmentData:
         mock_datetime.datetime.today.return_value = test_today
 
         result = generate_canvas_assignment_data(
-            course_id=1, assignment_group_id=1, secure_params="secure_params"
+            canvas_course_id=1, assignment_group_id=1, secure_params="secure_params"
         )
         assert "assignment" in result
         assert set(result["assignment"]) == set(self.assignment_required_fields)

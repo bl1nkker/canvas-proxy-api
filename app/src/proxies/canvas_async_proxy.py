@@ -15,12 +15,12 @@ from src.enums.attendance_value import AttendanceValue
 from utils.generate_canvas_assignment_data import generate_canvas_assignment_data
 
 
-def is_student(course_id: int, user_dict: dict) -> bool:
+def is_student(canvas_course_id: int, user_dict: dict) -> bool:
     course_enrollment = next(
         (
             enrollment
             for enrollment in user_dict.get("enrollments", [])
-            if enrollment["course_id"] == course_id
+            if enrollment["course_id"] == canvas_course_id
         ),
         None,
     )
@@ -84,9 +84,11 @@ class CanvasAsyncProxy:
     async def get_attendance_assignment_group(
         self,
         cookies: dict,
-        course_id: int,
+        canvas_course_id: int,
     ) -> canvas_assignment_dto.AssignmentGroup:
-        url = f"{self._canvas_domain}/api/v1/courses/{course_id}/assignment_groups"
+        url = (
+            f"{self._canvas_domain}/api/v1/courses/{canvas_course_id}/assignment_groups"
+        )
         query_params = (
             ("exclude_response_fields[]", "description"),
             ("include[]", "assignments"),
@@ -107,24 +109,27 @@ class CanvasAsyncProxy:
 
     async def create_assignment(
         self,
-        course_id: int,
+        canvas_course_id: int,
         assignment_group_id: int,
         cookies: dict,
     ) -> canvas_assignment_dto.Assignment:
         async with aiohttp.ClientSession() as session:
             secure_params = await self._get_assignment_secure_params(
                 session=session,
-                course_id=course_id,
+                canvas_course_id=canvas_course_id,
                 assignment_group_id=assignment_group_id,
                 cookies=cookies,
             )
             data = generate_canvas_assignment_data(
-                course_id=course_id,
+                canvas_course_id=canvas_course_id,
                 assignment_group_id=assignment_group_id,
                 secure_params=secure_params,
             )
             assignment = await self._create_assignment(
-                session=session, course_id=course_id, data=data, cookies=cookies
+                session=session,
+                canvas_course_id=canvas_course_id,
+                data=data,
+                cookies=cookies,
             )
             return assignment
 
@@ -180,11 +185,11 @@ class CanvasAsyncProxy:
     async def _get_assignment_secure_params(
         self,
         session: aiohttp.ClientSession,
-        course_id: int,
+        canvas_course_id: int,
         assignment_group_id: int,
         cookies: dict,
     ) -> str:
-        url = f"{self._canvas_domain}/courses/{course_id}/assignments/new?submission_types=none&name=&due_at=null&points_possible=0&assignment_group_id={assignment_group_id}"
+        url = f"{self._canvas_domain}/courses/{canvas_course_id}/assignments/new?submission_types=none&name=&due_at=null&points_possible=0&assignment_group_id={assignment_group_id}"
         self._log.info("fetching from Canvas", url=url)
         cookies = cookies or {}
         async with session.get(url, cookies=cookies) as response:
@@ -197,11 +202,11 @@ class CanvasAsyncProxy:
     async def _create_assignment(
         self,
         session: aiohttp.ClientSession,
-        course_id: int,
+        canvas_course_id: int,
         data: dict,
         cookies: auth_dto.CanvasAuthData,
     ) -> canvas_assignment_dto.Assignment:
-        url = f"{self._canvas_domain}/api/v1/courses/{course_id}/assignments"
+        url = f"{self._canvas_domain}/api/v1/courses/{canvas_course_id}/assignments"
         self._log.info("fetching from Canvas", url=url)
         cookies = cookies or {}
         headers = generate_canvas_header(cookies)

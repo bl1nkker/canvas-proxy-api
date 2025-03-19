@@ -23,7 +23,7 @@ def generate_attendance_name(prefix="Attendance"):
 
 
 def generate_canvas_assignment_data(
-    course_id: int, assignment_group_id: int, secure_params: str
+    canvas_course_id: int, assignment_group_id: int, secure_params: str
 ):
     name = generate_attendance_name()
     description = f"""
@@ -46,7 +46,7 @@ def generate_canvas_assignment_data(
             "annotatable_attachment_id": "",
             "secure_params": secure_params,
             "lti_context_id": None,
-            "course_id": str(course_id),
+            "course_id": str(canvas_course_id),
             "name": name,
             "submission_types": ["none"],
             "has_submitted_submissions": False,

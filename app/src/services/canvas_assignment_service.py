@@ -26,7 +26,7 @@ class CanvasAssignmentService:
             if not course:
                 raise NotFoundError(message=f"_err_message_course_not_found:{web_id}")
         group = await self._canvas_proxy_provider.get_attendance_assignment_group(
-            cookies=canvas_auth_data, course_id=course.canvas_course_id
+            cookies=canvas_auth_data, canvas_course_id=course.canvas_course_id
         )
         return group
 
@@ -41,7 +41,7 @@ class CanvasAssignmentService:
             if not course:
                 raise NotFoundError(message=f"_err_message_course_not_found:{web_id}")
         assignment = await self._canvas_proxy_provider.create_assignment(
-            course_id=course.canvas_course_id,
+            canvas_course_id=course.canvas_course_id,
             assignment_group_id=dto.assignment_group_id,
             cookies=canvas_auth_data,
         )

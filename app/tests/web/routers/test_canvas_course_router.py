@@ -118,47 +118,50 @@ class TestCanvasCourseRouter(BaseTest, WebApplicationTest):
         assert data == [
             {
                 "course": {
+                    "canvas_course_id": 1,
                     "long_name": "test-long_name",
                     "short_name": "test-short_name",
                     "original_name": "test-original_name",
                     "course_code": "code-123",
-                    "course_id": 228337,
+                    "id": 1,
                 },
                 "student": {
                     "web_id": "web-id-4",
                     "name": "Test Testname",
                     "email": "test@gmail.com",
-                    "canvas_user_id": 1,
+                    "id": 1,
                 },
             },
             {
                 "course": {
+                    "canvas_course_id": 1,
                     "long_name": "test-long_name",
                     "short_name": "test-short_name",
                     "original_name": "test-original_name",
                     "course_code": "code-123",
-                    "course_id": 228337,
+                    "id": 1,
                 },
                 "student": {
                     "web_id": "web-id-6",
                     "name": "Test Testname",
                     "email": "test@gmail.com",
-                    "canvas_user_id": 1,
+                    "id": 2,
                 },
             },
             {
                 "course": {
+                    "canvas_course_id": 1,
                     "long_name": "test-long_name",
                     "short_name": "test-short_name",
                     "original_name": "test-original_name",
                     "course_code": "code-123",
-                    "course_id": 228337,
+                    "id": 1,
                 },
                 "student": {
                     "web_id": "web-id-8",
                     "name": "Test Testname",
                     "email": "test@gmail.com",
-                    "canvas_user_id": 1,
+                    "id": 3,
                 },
             },
         ]
