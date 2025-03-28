@@ -12,14 +12,14 @@ class Read(BaseModel):
     web_id: str
     canvas_assignment_id: int
     name: str
-    course_id: int
+    assignment_group_id: int
 
     @classmethod
     def from_dbmodel(cls, item):
         return cls(
             web_id=item.web_id,
             name=item.name,
-            course_id=item.course_id,
+            assignment_group_id=item.assignment_group_id,
             canvas_assignment_id=item.canvas_assignment_id,
         )
 
@@ -31,7 +31,3 @@ class AssignmentGroup(BaseModel):
     position: int
     sis_source_id: Optional[int]
     assignments: list[Read]
-
-
-class Create(BaseModel):
-    assignment_group_id: int

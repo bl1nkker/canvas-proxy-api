@@ -36,7 +36,6 @@ class AttendanceService:
             attendance = Attendance(
                 student_id=student.id,
                 assignment_id=assignment.id,
-                course_id=assignment.course.id,
                 status=dto.status,
                 value=dto.value,
             )

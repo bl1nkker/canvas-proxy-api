@@ -43,12 +43,12 @@ class CanvasProxyProvider:
     async def create_assignment(
         self,
         canvas_course_id: int,
-        assignment_group_id: int,
+        canvas_assignment_group_id: int,
         cookies: auth_dto.CanvasAuthData,
     ):
         return await self._proxy.create_assignment(
             canvas_course_id=canvas_course_id,
-            assignment_group_id=assignment_group_id,
+            assignment_group_id=canvas_assignment_group_id,
             cookies=cookies.model_dump(by_alias=True),
         )
 

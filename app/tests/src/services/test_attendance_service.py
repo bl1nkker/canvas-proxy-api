@@ -16,11 +16,15 @@ class TestAttendanceService(BaseTest):
         create_canvas_user,
         create_canvas_course,
         create_assignment,
+        create_assignment_group,
         cleanup_all,
     ):
         canvas_user = create_canvas_user(username="user")
         course = create_canvas_course(canvas_user=canvas_user)
-        assignment = create_assignment(course=course, name="sample assignment")
+        assignment_group = create_assignment_group(course=course, name="Test Group")
+        assignment = create_assignment(
+            assignment_group=assignment_group, name="sample assignment"
+        )
         student = create_student()
         dto = attendance_dto.Create(
             student_id=student.id,
@@ -63,11 +67,15 @@ class TestAttendanceService(BaseTest):
         create_canvas_user,
         create_canvas_course,
         create_assignment,
+        create_assignment_group,
         cleanup_all,
     ):
         canvas_user = create_canvas_user(username="user")
         course = create_canvas_course(canvas_user=canvas_user)
-        assignment = create_assignment(course=course, name="sample assignment")
+        assignment_group = create_assignment_group(course=course, name="Test Group")
+        assignment = create_assignment(
+            assignment_group=assignment_group, name="sample assignment"
+        )
         dto = attendance_dto.Create(
             student_id=0,
             status=AttendanceStatus.INITIATED,
