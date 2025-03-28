@@ -28,6 +28,7 @@ from src.repositories.student_vector_repo import StudentVectorRepo
 from src.repositories.user_repo import UserRepo
 from src.services.attendance_service import AttendanceService
 from src.services.auth_service import AuthService
+from src.services.canvas_assignment_service import CanvasAssignmentService
 from src.services.canvas_course_service import CanvasCourseService
 from src.services.student_service import StudentService
 from src.services.upload_service import UploadService
@@ -128,6 +129,16 @@ class BaseTest(DbTest, FileFixtures):
             student_repo=student_repo,
             assignment_repo=assignment_repo,
             canvas_course_repo=canvas_course_repo,
+        )
+
+    @pytest.fixture
+    def canvas_assignment_service(
+        self, attendance_service, canvas_course_repo, assignment_repo
+    ):
+        return CanvasAssignmentService(
+            attendance_service=attendance_service,
+            canvas_course_repo=canvas_course_repo,
+            assignment_repo=assignment_repo,
         )
 
     @pytest.fixture
