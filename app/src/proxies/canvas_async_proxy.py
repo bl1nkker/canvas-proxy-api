@@ -112,7 +112,7 @@ class CanvasAsyncProxy:
         canvas_course_id: int,
         assignment_group_id: int,
         cookies: dict,
-    ) -> canvas_assignment_dto.Assignment:
+    ) -> canvas_assignment_dto.Read:
         async with aiohttp.ClientSession() as session:
             secure_params = await self._get_assignment_secure_params(
                 session=session,
@@ -205,7 +205,7 @@ class CanvasAsyncProxy:
         canvas_course_id: int,
         data: dict,
         cookies: auth_dto.CanvasAuthData,
-    ) -> canvas_assignment_dto.Assignment:
+    ) -> canvas_assignment_dto.CanvasRead:
         url = f"{self._canvas_domain}/api/v1/courses/{canvas_course_id}/assignments"
         self._log.info("fetching from Canvas", url=url)
         cookies = cookies or {}
@@ -215,7 +215,7 @@ class CanvasAsyncProxy:
         ) as response:
             response.raise_for_status()
             response_body = await response.json()
-            return canvas_assignment_dto.Assignment.model_validate(response_body)
+            return canvas_assignment_dto.CanvasRead.model_validate(response_body)
 
     async def _get_basic_cookies(
         self, session: aiohttp.ClientSession, cookies: dict = None

@@ -9,13 +9,12 @@ from src.enums.attendance_value import AttendanceValue
 
 class Create(BaseModel):
     student_id: int
-    canvas_assignment_id: int
     status: AttendanceStatus
     value: AttendanceValue
 
 
 class Read(BaseModel):
-    canvas_assignment_id: int
+    assignment_id: int
     status: AttendanceStatus
     value: AttendanceValue
     student: student_dto.Read
@@ -23,7 +22,7 @@ class Read(BaseModel):
     @classmethod
     def from_dbmodel(cls, dbmodel):
         return cls(
-            canvas_assignment_id=dbmodel.canvas_assignment_id,
+            assignment_id=dbmodel.assignment_id,
             status=dbmodel.status,
             value=dbmodel.value,
             student=student_dto.Read.from_dbmodel(dbmodel.student),

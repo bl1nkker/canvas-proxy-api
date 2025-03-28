@@ -1,5 +1,7 @@
 from importlib import import_module
 
+from src.models.assignment import Assignment
+from src.models.assignment_group import AssignmentGroup
 from src.models.attendance import Attendance
 from src.models.canvas_course import CanvasCourse
 from src.models.canvas_user import CanvasUser
