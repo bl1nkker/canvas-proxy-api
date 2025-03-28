@@ -2,6 +2,7 @@ from src.dto import attendance_dto
 from src.enums.attendance_status import AttendanceStatus
 from src.errors.types import NotFoundError
 from src.models.attendance import Attendance
+from src.repositories.assignment_repo import AssignmentRepo
 from src.repositories.attendance_repo import AttendanceRepo
 from src.repositories.canvas_course_repo import CanvasCourseRepo
 from src.repositories.student_repo import StudentRepo
@@ -12,19 +13,21 @@ class AttendanceService:
         self,
         student_repo: StudentRepo,
         attendance_repo: AttendanceRepo,
+        assignment_repo: AssignmentRepo,
         canvas_course_repo: CanvasCourseRepo,
     ):
         self._student_repo = student_repo
         self._canvas_course_repo = canvas_course_repo
+        self._assignment_repo = assignment_repo
         self._attendance_repo = attendance_repo
 
     def create_attendance(
         self, web_id: str, dto: attendance_dto.Create
     ) -> attendance_dto.Read:
-        with self._canvas_course_repo.session():
-            course = self._canvas_course_repo.get_by_web_id(web_id=web_id)
-        if course is None:
-            raise NotFoundError(f"_error_msg_course_not_found:{web_id}")
+        with self._assignment_repo.session():
+            assignment = self._assignment_repo.get_by_web_id(web_id=web_id)
+        if assignment is None:
+            raise NotFoundError(f"_error_msg_assignment_not_found:{web_id}")
         with self._student_repo.session():
             student = self._student_repo.get_by_db_id(dto.student_id)
         if student is None:
@@ -32,10 +35,10 @@ class AttendanceService:
         with self._attendance_repo.session():
             attendance = Attendance(
                 student_id=student.id,
-                canvas_assignment_id=dto.canvas_assignment_id,
+                assignment_id=assignment.id,
+                course_id=assignment.course.id,
                 status=dto.status,
                 value=dto.value,
-                course_id=course.id,
             )
             self._attendance_repo.save_or_update(attendance)
         return attendance_dto.Read.from_dbmodel(attendance)

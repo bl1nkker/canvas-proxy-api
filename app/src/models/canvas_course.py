@@ -23,3 +23,10 @@ class CanvasCourse(Base, DbModel, HasWebId):
         primaryjoin="CanvasCourse.id == Enrollment.course_id",
         lazy="selectin",
     )
+
+    assignments = relationship(
+        "Assignment",
+        back_populates="course",
+        primaryjoin="CanvasCourse.id == Assignment.course_id",
+        lazy="selectin",
+    )

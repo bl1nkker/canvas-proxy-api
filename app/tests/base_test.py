@@ -11,10 +11,12 @@ from db.base_repo import BaseRepo
 from src.enums.attendance_status import AttendanceStatus
 from src.enums.attendance_value import AttendanceValue
 from src.models import CanvasUser, FileRecord, User
+from src.models.assignment import Assignment
 from src.models.attendance import Attendance
 from src.models.canvas_course import CanvasCourse
 from src.models.enrollment import Enrollment
 from src.models.student import Student
+from src.repositories.assignment_repo import AssignmentRepo
 from src.repositories.attendance_repo import AttendanceRepo
 from src.repositories.canvas_course_repo import CanvasCourseRepo
 from src.repositories.canvas_user_repo import CanvasUserRepo
@@ -77,6 +79,10 @@ class BaseTest(DbTest, FileFixtures):
         return AttendanceRepo(db_session)
 
     @pytest.fixture
+    def assignment_repo(self, db_session):
+        return AssignmentRepo(db_session)
+
+    @pytest.fixture
     def student_vector_repo(self, db_session):
         return StudentVectorRepo(db_session)
 
@@ -114,10 +120,13 @@ class BaseTest(DbTest, FileFixtures):
         )
 
     @pytest.fixture
-    def attendance_service(self, attendance_repo, student_repo, canvas_course_repo):
+    def attendance_service(
+        self, attendance_repo, student_repo, assignment_repo, canvas_course_repo
+    ):
         return AttendanceService(
             attendance_repo=attendance_repo,
             student_repo=student_repo,
+            assignment_repo=assignment_repo,
             canvas_course_repo=canvas_course_repo,
         )
 
@@ -153,6 +162,7 @@ class BaseTest(DbTest, FileFixtures):
         models = [
             Enrollment,
             Attendance,
+            Assignment,
             Student,
             CanvasUser,
             CanvasCourse,
@@ -325,14 +335,14 @@ class BaseTest(DbTest, FileFixtures):
         def _gen(
             student,
             course,
-            canvas_assignment_id=1,
+            assignment,
             status=AttendanceStatus.INITIATED,
             value=AttendanceValue.COMPLETE,
         ):
             att = Attendance(
                 course_id=course.id,
                 student_id=student.id,
-                canvas_assignment_id=canvas_assignment_id,
+                assignment_id=assignment.id,
                 status=status,
                 value=value,
             )
@@ -345,20 +355,47 @@ class BaseTest(DbTest, FileFixtures):
         def _gen(
             student,
             course,
-            canvas_assignment_id=1,
+            assignment,
             status=AttendanceStatus.INITIATED,
             value=AttendanceValue.COMPLETE,
         ):
             att = sample_attendance(
                 course=course,
                 student=student,
-                canvas_assignment_id=canvas_assignment_id,
+                assignment=assignment,
                 status=status,
                 value=value,
             )
             with attendance_repo.session():
                 att = attendance_repo.save_or_update(att)
             return att
+
+        return _gen
+
+    @pytest.fixture
+    def sample_assignment(self, patch_shortuuid):
+        def _gen(name, course, canvas_assignment_id=1):
+            assignment = Assignment(
+                web_id=shortuuid.uuid(),
+                course_id=course.id,
+                name=name,
+                canvas_assignment_id=canvas_assignment_id,
+            )
+            return assignment
+
+        return _gen
+
+    @pytest.fixture
+    def create_assignment(self, sample_assignment, assignment_repo) -> CanvasCourse:
+        def _gen(name, course, canvas_assignment_id=1):
+            assignment = sample_assignment(
+                name=name,
+                course=course,
+                canvas_assignment_id=canvas_assignment_id,
+            )
+            with assignment_repo.session():
+                assignment = assignment_repo.save_or_update(assignment)
+            return assignment
 
         return _gen
 

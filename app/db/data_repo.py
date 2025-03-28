@@ -41,7 +41,7 @@ class DataRepo(BaseRepo, Generic[T]):
 
     def get_by_db_id(self, db_id: int, query=None) -> T:
         query = query or self.query()
-        return query.filter(self._type.id == db_id).one()
+        return query.filter(self._type.id == db_id).first()
 
     def single(self, query=None) -> T:
         query = query or self.query()

@@ -13,6 +13,7 @@ class Attendance(Base, DbModel):
     student = relationship("Student")
     course_id = Column(Integer, ForeignKey("app.canvas_courses.id"), nullable=False)
     course = relationship("CanvasCourse")
-    canvas_assignment_id = Column(Integer, nullable=False)
+    assignment_id = Column(Integer, ForeignKey("app.assignments.id"), nullable=False)
+    assignment = relationship("Assignment")
     status = Column(Enum(AttendanceStatus), nullable=False)
     value = Column(Enum(AttendanceValue), nullable=False)

@@ -11,15 +11,17 @@ class TestAttendanceRepo(BaseTest):
         attendance_repo,
         create_canvas_user,
         create_canvas_course,
+        create_assignment,
         cleanup_all,
     ):
         student = create_student()
         canvas_user = create_canvas_user(username="user")
         course = create_canvas_course(canvas_user=canvas_user)
+        assignment = create_assignment(course=course, name="sample assignment")
         with attendance_repo.session():
             attendance = Attendance(
                 student=student,
-                canvas_assignment_id=10,
+                assignment_id=assignment.id,
                 status=AttendanceStatus.INITIATED,
                 value=AttendanceValue.COMPLETE,
                 course_id=course.id,
@@ -29,7 +31,7 @@ class TestAttendanceRepo(BaseTest):
             atts = attendance_repo.list_all()
             assert len(atts) == 1
             assert atts[0].student == student
-            assert atts[0].canvas_assignment_id == 10
+            assert atts[0].assignment_id == assignment.id
             assert atts[0].status is AttendanceStatus.INITIATED
             assert atts[0].value is AttendanceValue.COMPLETE
 
@@ -40,17 +42,19 @@ class TestAttendanceRepo(BaseTest):
         create_canvas_user,
         create_canvas_course,
         attendance_repo,
+        create_assignment,
         cleanup_all,
     ):
         student = create_student()
         canvas_user = create_canvas_user(username="user")
         course = create_canvas_course(canvas_user=canvas_user)
-        att = create_attendance(student=student, canvas_assignment_id=2, course=course)
+        assignment = create_assignment(course=course, name="sample assignment")
+        att = create_attendance(student=student, assignment=assignment, course=course)
         for _ in range(5):
-            create_attendance(student=student, course=course)
+            create_attendance(student=student, assignment=assignment, course=course)
         with attendance_repo.session():
             att = attendance_repo.get_by_db_id(db_id=att.id)
-            assert att.canvas_assignment_id == 2
+            assert att.assignment_id == assignment.id
 
     def test_update_assignment(
         self,
@@ -59,12 +63,14 @@ class TestAttendanceRepo(BaseTest):
         attendance_repo,
         create_canvas_user,
         create_canvas_course,
+        create_assignment,
         cleanup_all,
     ):
         canvas_user = create_canvas_user(username="user")
         course = create_canvas_course(canvas_user=canvas_user)
         student = create_student()
-        att = create_attendance(student=student, canvas_assignment_id=1, course=course)
+        assignment = create_assignment(course=course, name="sample assignment")
+        att = create_attendance(student=student, assignment=assignment, course=course)
         with attendance_repo.session():
             att = attendance_repo.get_by_db_id(db_id=att.id)
             att.canvas_assignment_id = 2
@@ -84,12 +90,14 @@ class TestAttendanceRepo(BaseTest):
         create_canvas_user,
         create_canvas_course,
         attendance_repo,
+        create_assignment,
         cleanup_all,
     ):
         canvas_user = create_canvas_user(username="user")
         course = create_canvas_course(canvas_user=canvas_user)
         student = create_student()
-        att = create_attendance(student=student, course=course)
+        assignment = create_assignment(course=course, name="sample assignment")
+        att = create_attendance(student=student, assignment=assignment, course=course)
         with attendance_repo.session():
             attendance_repo.delete(att)
         with attendance_repo.session():
