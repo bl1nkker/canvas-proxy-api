@@ -122,7 +122,7 @@ class TestCanvasAssignmentService(BaseTest):
             assert len(attendances) == 5
             for att in attendances:
                 assert att.assignment.web_id == assignment.web_id
-                assert att.status == AttendanceStatus.INITIATED
+                assert att.status == AttendanceStatus.COMPLETED
                 assert att.value == AttendanceValue.INCOMPLETE
 
     @pytest.mark.asyncio

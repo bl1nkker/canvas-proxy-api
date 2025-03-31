@@ -111,7 +111,7 @@ class CanvasAssignmentService:
             for enrollment in enrollments:
                 dto = attendance_dto.Create(
                     student_id=enrollment.student_id,
-                    status=AttendanceStatus.INITIATED,
+                    status=AttendanceStatus.COMPLETED,
                     value=AttendanceValue.INCOMPLETE,
                 )
                 self._attendance_service.create_attendance(
