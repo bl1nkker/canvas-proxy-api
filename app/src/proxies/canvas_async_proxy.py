@@ -85,7 +85,7 @@ class CanvasAsyncProxy:
         self,
         cookies: dict,
         canvas_course_id: int,
-    ) -> canvas_assignment_dto.AssignmentGroup:
+    ) -> canvas_assignment_dto.AssignmentGroupCanvas:
         url = (
             f"{self._canvas_domain}/api/v1/courses/{canvas_course_id}/assignment_groups"
         )
@@ -102,8 +102,10 @@ class CanvasAsyncProxy:
                 response_body = await response.json()
                 for item in response_body:
                     if item["name"] == self.ATTENDANCE_GROUP_NAME:
-                        return canvas_assignment_dto.AssignmentGroup.model_validate(
-                            item
+                        return (
+                            canvas_assignment_dto.AssignmentGroupCanvas.model_validate(
+                                item
+                            )
                         )
                 return None
 

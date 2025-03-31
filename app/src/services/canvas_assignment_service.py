@@ -3,8 +3,9 @@ import shortuuid
 from src.dto import attendance_dto, auth_dto, canvas_assignment_dto
 from src.enums.attendance_status import AttendanceStatus
 from src.enums.attendance_value import AttendanceValue
-from src.errors.types import NotFoundError
+from src.errors.types import CanvasAPIError, NotFoundError
 from src.models.assignment import Assignment
+from src.models.assignment_group import AssignmentGroup
 from src.proxies.canvas_proxy_provider import CanvasProxyProvider
 from src.repositories.assignment_group_repo import AssignmentGroupRepo
 from src.repositories.assignment_repo import AssignmentRepo
@@ -29,17 +30,49 @@ class CanvasAssignmentService:
 
     async def get_attendance_assignment_group(
         self, web_id: str, canvas_auth_data: auth_dto.CanvasAuthData
-    ) -> canvas_assignment_dto.AssignmentGroup:
+    ) -> canvas_assignment_dto.AssignmentGroupRead:
         with self._canvas_course_repo.session():
             course = self._canvas_course_repo.get_by_web_id(web_id=web_id)
             if not course:
                 raise NotFoundError(message=f"_err_message_course_not_found:{web_id}")
+        assignment_group = None
         group = await self._canvas_proxy_provider.get_attendance_assignment_group(
             cookies=canvas_auth_data, canvas_course_id=course.canvas_course_id
         )
-        # TODO: Create a new AssignmentGroup
-        # TODO: For each of the assignments create Assignment
-        return group
+        if not group:
+            # ? Should we syncronize the assignment groups here? If there is no assignment group, we might delete the records from the database
+            raise CanvasAPIError(
+                message=f"_err_message_no_attendance_assignment_groups_for_this_course:{web_id}"
+            )
+        with self._assignment_group_repo.session():
+            assignment_group = (
+                self._assignment_group_repo.get_by_canvas_assignment_group_id(
+                    canvas_assignment_group_id=group.assignment_group_id
+                )
+            )
+            if not assignment_group:
+                assignment_group = AssignmentGroup(
+                    web_id=shortuuid.uuid(),
+                    name=group.name,
+                    group_weight=group.group_weight,
+                    course_id=course.id,
+                    canvas_assignment_group_id=group.assignment_group_id,
+                )
+                self._assignment_group_repo.save_or_update(assignment_group)
+
+            for assignment in group.assignments:
+                existing_assignment = self._assignment_repo.get_by_canvas_assignment_id(
+                    canvas_assignment_id=assignment.canvas_assignment_id
+                )
+                if not existing_assignment:
+                    assignment = Assignment(
+                        web_id=shortuuid.uuid(),
+                        name=assignment.name,
+                        assignment_group_id=assignment_group.id,
+                        canvas_assignment_id=assignment.canvas_assignment_id,
+                    )
+                    self._assignment_repo.save_or_update(assignment)
+        return canvas_assignment_dto.AssignmentGroupRead.from_dbmodel(assignment_group)
 
     async def create_assignment(
         self,

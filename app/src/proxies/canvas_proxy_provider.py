@@ -35,7 +35,7 @@ class CanvasProxyProvider:
 
     async def get_attendance_assignment_group(
         self, canvas_course_id: int, cookies: auth_dto.CanvasAuthData
-    ) -> canvas_assignment_dto.AssignmentGroup:
+    ) -> canvas_assignment_dto.AssignmentGroupCanvas:
         return await self._proxy.get_attendance_assignment_group(
             cookies=cookies.model_dump(by_alias=True), canvas_course_id=canvas_course_id
         )
