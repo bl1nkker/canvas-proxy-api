@@ -354,7 +354,7 @@ class BaseTest(DbTest, FileFixtures):
         return _gen
 
     @pytest.fixture
-    def sample_attendance(self):
+    def sample_attendance(self, patch_shortuuid):
         def _gen(
             student,
             assignment,
@@ -362,6 +362,7 @@ class BaseTest(DbTest, FileFixtures):
             value=AttendanceValue.COMPLETE,
         ):
             att = Attendance(
+                web_id=shortuuid.uuid(),
                 student_id=student.id,
                 assignment_id=assignment.id,
                 status=status,

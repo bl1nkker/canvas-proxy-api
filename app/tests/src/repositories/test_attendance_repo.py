@@ -24,6 +24,7 @@ class TestAttendanceRepo(BaseTest):
         )
         with attendance_repo.session():
             attendance = Attendance(
+                web_id="web-id-1",
                 student=student,
                 assignment_id=assignment.id,
                 status=AttendanceStatus.INITIATED,
