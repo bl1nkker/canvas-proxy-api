@@ -6,9 +6,8 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from db.get_db_session import get_db_session
-from src.dto import attendance_dto, auth_dto, canvas_course_dto
+from src.dto import auth_dto, canvas_course_dto
 from src.services.attendance_process_service import AttendanceProcessService
-from src.services.attendance_service import AttendanceService
 from src.services.canvas_assignment_service import CanvasAssignmentService
 from src.services.canvas_course_service import CanvasCourseService
 from src.services.service_factory import service_factory
@@ -25,10 +24,6 @@ def get_service(db_session: Annotated[Session, Depends(get_db_session)]):
 
 def get_assignment_service(db_session: Annotated[Session, Depends(get_db_session)]):
     return service_factory().canvas_assignment_service(db_session=db_session)
-
-
-def get_attendance_service(db_session: Annotated[Session, Depends(get_db_session)]):
-    return service_factory().attendance_service(db_session=db_session)
 
 
 def get_student_service(db_session: Annotated[Session, Depends(get_db_session)]):
@@ -93,39 +88,6 @@ async def create_assignment(
         web_id=web_id,
         assignment_group_web_id=assignment_group_web_id,
         canvas_auth_data=auth_data,
-    )
-    return JSONResponse(
-        status_code=status.HTTP_201_CREATED, content=jsonable_encoder(result)
-    )
-
-
-@router.get(
-    "/{web_id}/assignment-groups/{assignment_group_web_id}/assignments/{assignment_id}"
-)
-def list_attendance_by_assignment_id(
-    web_id: str,
-    assignment_id: int,
-    service: Annotated[AttendanceService, Depends(get_attendance_service)],
-):
-    result = service.list_attendance_by_assignment_id(
-        web_id=web_id, assignment_id=assignment_id
-    )
-    return JSONResponse(
-        status_code=status.HTTP_200_OK, content=jsonable_encoder(result)
-    )
-
-
-@router.put(
-    "/{web_id}/assignment-groups/{assignment_group_web_id}/assignments/{assignment_id}"
-)
-def mark_attendance(
-    web_id: str,
-    assignment_id: int,
-    dto: attendance_dto.Mark,
-    service: Annotated[AttendanceService, Depends(get_attendance_service)],
-):
-    result = service.mark_attendance(
-        web_id=web_id, assignment_id=assignment_id, dto=dto
     )
     return JSONResponse(
         status_code=status.HTTP_201_CREATED, content=jsonable_encoder(result)

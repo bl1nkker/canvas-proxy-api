@@ -1,3 +1,6 @@
+import shortuuid
+
+from db.data_repo import Pagination
 from src.dto import attendance_dto
 from src.enums.attendance_status import AttendanceStatus
 from src.errors.types import NotFoundError
@@ -34,6 +37,7 @@ class AttendanceService:
             raise NotFoundError(f"_error_msg_student_not_found:{dto.student_id}")
         with self._attendance_repo.session():
             attendance = Attendance(
+                web_id=shortuuid.uuid(),
                 student_id=student.id,
                 assignment_id=assignment.id,
                 status=dto.status,
@@ -42,38 +46,40 @@ class AttendanceService:
             self._attendance_repo.save_or_update(attendance)
         return attendance_dto.Read.from_dbmodel(attendance)
 
-    def list_attendance_by_assignment_id(
-        self, web_id: str, assignment_id: int
-    ) -> list[attendance_dto.Read]:
-        with self._canvas_course_repo.session():
-            course = self._canvas_course_repo.get_by_web_id(web_id=web_id)
-        if course is None:
-            raise NotFoundError(f"_error_msg_course_not_found:{web_id}")
+    def list_attendances_by_assignment(
+        self, assignment_web_id: str, page=1, page_size=10, order_by="id", asc=True
+    ) -> Pagination[attendance_dto.Read]:
+        with self._assignment_repo.session():
+            assignment = self._assignment_repo.get_by_web_id(web_id=assignment_web_id)
+            if not assignment:
+                raise NotFoundError(
+                    f"_error_msg_assignment_not_found:{assignment_web_id}"
+                )
         with self._attendance_repo.session():
+            query = self._attendance_repo.order_by(order_by=order_by, asc=asc)
             query = self._attendance_repo.filter_by_assignment_id(
-                assignment_id=assignment_id
+                assignment_id=assignment.id
             )
-            attendances = self._attendance_repo.list_all(query=query)
-        return [
-            attendance_dto.Read.from_dbmodel(attendance) for attendance in attendances
-        ]
+            attendances = self._attendance_repo.list_paged(
+                page=page, page_size=page_size, query=query
+            )
+        return Pagination(
+            page=attendances.page,
+            page_size=attendances.page_size,
+            total=attendances.total,
+            items=[
+                attendance_dto.Read.from_dbmodel(attendance)
+                for attendance in attendances.items
+            ],
+        )
 
     def mark_attendance(
-        self, web_id: str, assignment_id: int, dto: attendance_dto.Mark
+        self, web_id: str, dto: attendance_dto.Mark
     ) -> attendance_dto.Read:
-        with self._canvas_course_repo.session():
-            course = self._canvas_course_repo.get_by_web_id(web_id=web_id)
-        if course is None:
-            raise NotFoundError(f"_error_msg_course_not_found:{web_id}")
         with self._attendance_repo.session():
-            query = self._attendance_repo.filter_by_assignment_id(
-                assignment_id=assignment_id
-            )
-            attendance = self._attendance_repo.get_by_student_id(
-                student_id=dto.student_id, query=query
-            )
+            attendance = self._attendance_repo.get_by_web_id(web_id=web_id)
             if attendance is None:
-                raise NotFoundError("_error_msg_attendance_not_found")
+                raise NotFoundError(f"_error_msg_attendance_not_found: {web_id}")
             attendance.status = AttendanceStatus.INITIATED
             attendance.value = dto.value
             self._attendance_repo.save_or_update(attendance)
