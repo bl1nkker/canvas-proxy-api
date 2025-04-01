@@ -21,14 +21,12 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # Добавляем колонку без ограничения NOT NULL
     op.add_column(
         "attendances",
         sa.Column("web_id", sa.String(length=32), nullable=True),
         schema="app",
     )
 
-    # Генерируем web_id для существующих записей
     conn = op.get_bind()
     result = conn.execute(sa.text("SELECT id FROM app.attendances"))
     for row in result:
@@ -37,7 +35,6 @@ def upgrade() -> None:
             {"web_id": str(shortuuid.uuid()), "id": row[0]},
         )
 
-    # Делаем колонку NOT NULL и добавляем уникальный индекс
     op.alter_column("attendances", "web_id", nullable=False, schema="app")
     op.create_unique_constraint(
         "uq_attendances_web_id", "attendances", ["web_id"], schema="app"
