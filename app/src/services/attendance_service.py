@@ -42,6 +42,7 @@ class AttendanceService:
                 assignment_id=assignment.id,
                 status=dto.status,
                 value=dto.value,
+                failed=False,
             )
             self._attendance_repo.save_or_update(attendance)
         return attendance_dto.Read.from_dbmodel(attendance)

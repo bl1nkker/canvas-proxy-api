@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Enum, ForeignKey, Integer
+from sqlalchemy import JSON, Boolean, Column, Enum, ForeignKey, Integer
 from sqlalchemy.orm import relationship
 
 from db import DbModel, HasWebId
@@ -15,6 +15,9 @@ class Attendance(Base, DbModel, HasWebId):
     assignment = relationship("Assignment")
     status = Column(Enum(AttendanceStatus), nullable=False)
     value = Column(Enum(AttendanceValue), nullable=False)
+
+    failed = Column(Boolean, nullable=False)
+    error_json = Column(JSON(none_as_null=True), nullable=True)
 
     @property
     def course(self):

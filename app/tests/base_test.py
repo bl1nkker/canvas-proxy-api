@@ -28,6 +28,7 @@ from src.repositories.file_record_repo import FileRecordRepo
 from src.repositories.student_repo import StudentRepo
 from src.repositories.student_vector_repo import StudentVectorRepo
 from src.repositories.user_repo import UserRepo
+from src.services.attendance_process_service import AttendanceProcessService
 from src.services.attendance_service import AttendanceService
 from src.services.auth_service import AuthService
 from src.services.canvas_assignment_service import CanvasAssignmentService
@@ -134,6 +135,17 @@ class BaseTest(DbTest, FileFixtures):
             attendance_repo=attendance_repo,
             student_repo=student_repo,
             assignment_repo=assignment_repo,
+            canvas_course_repo=canvas_course_repo,
+        )
+
+    @pytest.fixture
+    def attendance_process_service(
+        self, attendance_repo, student_repo, auth_service, canvas_course_repo
+    ):
+        return AttendanceProcessService(
+            student_repo=student_repo,
+            attendance_repo=attendance_repo,
+            auth_service=auth_service,
             canvas_course_repo=canvas_course_repo,
         )
 
@@ -367,6 +379,7 @@ class BaseTest(DbTest, FileFixtures):
                 assignment_id=assignment.id,
                 status=status,
                 value=value,
+                failed=False,
             )
             return att
 
