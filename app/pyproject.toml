@@ -1,6 +1,6 @@
 [project]
 name = "canvas-proxy-api"
-version = "0.1.1a11"
+version = "0.1.1a12"
 description = ""
 authors = [{name = "bl1nkker", email = "nurovich14@gmail.com"}]
 
