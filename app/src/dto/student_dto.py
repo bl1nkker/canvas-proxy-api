@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
@@ -29,3 +29,12 @@ class Read(BaseModel):
             email=item.email,
             web_id=item.web_id,
         )
+
+
+class StudentFile(BaseModel):
+    origin_name: str
+    image_id: str
+    canvas_name: str
+    canvas_login: str
+    canvas_id: int
+    image_vector: Optional[Any] = None

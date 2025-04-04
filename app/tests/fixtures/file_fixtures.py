@@ -19,6 +19,13 @@ class FileFixtures:
             yield file
 
     @pytest.fixture
+    def students_file(self, fs_config):
+        with open(
+            os.path.join(fs_config.test_data_path, "student-data.xlsx"), "rb"
+        ) as file:
+            yield file
+
+    @pytest.fixture
     def sample_xlsx_file(self, fs_config):
         with open(os.path.join(fs_config.test_data_path, "test.xlsx"), "rb") as file:
             yield file

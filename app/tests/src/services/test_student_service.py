@@ -74,3 +74,25 @@ class TestStudendService(BaseTest):
                 web_id=student.web_id, course_web_id=course.web_id
             )
         assert exc.value.message == "_error_msg_enrollment_already_exists"
+
+    def test_load_students_from_excel(
+        self,
+        student_service,
+        student_repo,
+        student_vector_repo,
+        students_file,
+        cleanup_all,
+    ):
+        result = student_service.load_students_from_excel(
+            "test.csv", "text/csv", students_file
+        )
+        assert result is True
+        with student_repo.session():
+            students = student_repo.list_all()
+            assert len(students) == 5
+            for student in students:
+                assert student.canvas_user_id is not None
+
+        with student_vector_repo.session():
+            vectors = student_vector_repo.list_all()
+            assert len(vectors) == 5

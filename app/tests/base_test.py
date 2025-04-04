@@ -17,6 +17,7 @@ from src.models.attendance import Attendance
 from src.models.canvas_course import CanvasCourse
 from src.models.enrollment import Enrollment
 from src.models.student import Student
+from src.models.student_vector import StudentVector
 from src.repositories.assignment_group_repo import AssignmentGroupRepo
 from src.repositories.assignment_repo import AssignmentRepo
 from src.repositories.attendance_repo import AttendanceRepo
@@ -198,6 +199,7 @@ class BaseTest(DbTest, FileFixtures):
             Attendance,
             Assignment,
             AssignmentGroup,
+            StudentVector,
             Student,
             CanvasUser,
             CanvasCourse,
