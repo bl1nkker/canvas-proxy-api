@@ -1,3 +1,5 @@
+from src.repositories.assignment_group_repo import AssignmentGroupRepo
+from src.repositories.assignment_repo import AssignmentRepo
 from src.repositories.attendance_repo import AttendanceRepo
 from src.repositories.canvas_course_repo import CanvasCourseRepo
 from src.repositories.canvas_user_repo import CanvasUserRepo
@@ -35,6 +37,12 @@ class ServiceFactory:
 
     def attendance_repo(self, db_session):
         return AttendanceRepo(db_session=db_session)
+
+    def assignment_repo(self, db_session):
+        return AssignmentRepo(db_session=db_session)
+
+    def assignment_group_repo(self, db_session):
+        return AssignmentGroupRepo(db_session=db_session)
 
     def file_fs_repo(self):
         return FileFsRepo()
@@ -74,6 +82,7 @@ class ServiceFactory:
 
     def attendance_service(self, db_session):
         return AttendanceService(
+            assignment_repo=self.assignment_repo(db_session=db_session),
             attendance_repo=self.attendance_repo(db_session=db_session),
             student_repo=self.student_repo(db_session=db_session),
             canvas_course_repo=self.canvas_course_repo(db_session=db_session),
@@ -81,6 +90,8 @@ class ServiceFactory:
 
     def canvas_assignment_service(self, db_session):
         return CanvasAssignmentService(
+            assignment_group_repo=self.assignment_group_repo(db_session=db_session),
+            assignment_repo=self.assignment_repo(db_session=db_session),
             canvas_course_repo=self.canvas_course_repo(db_session=db_session),
             attendance_service=self.attendance_service(db_session=db_session),
         )

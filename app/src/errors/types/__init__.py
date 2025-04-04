@@ -40,3 +40,8 @@ class InvalidContentTypeError(BaseError):
 class InvalidDataError(BaseError):
     def __init__(self, message: str):
         super().__init__(message=message, code=CoreErrors.INVALID_DATA.value)
+
+
+class CanvasAPIError(BaseError):
+    def __init__(self, message: str):
+        super().__init__(message=message, code=CoreErrors.CANVAS_API_ERROR.value)

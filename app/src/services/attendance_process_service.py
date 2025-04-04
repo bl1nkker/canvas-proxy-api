@@ -1,6 +1,9 @@
 import structlog
 
 from src.dto import auth_dto
+from src.enums.attendance_status import AttendanceStatus
+from src.errors.attendance_process_error import AttendanceProcessError
+from src.models.attendance import Attendance
 from src.proxies.canvas_proxy_provider import CanvasProxyProvider
 from src.repositories.attendance_repo import AttendanceRepo
 from src.repositories.canvas_course_repo import CanvasCourseRepo
@@ -42,15 +45,33 @@ class AttendanceProcessService:
             attendance = self._attendance_repo.next_attendance_from_queue()
             if attendance is None:
                 return False
+            result = await self.process_single_attendance(attendance.id)
+            self._log.debug('returning from "process_next_attendance"')
+            return result
 
-            return await self.process_single_attendance(attendance.id)
+    @staticmethod
+    def _handle_exc(attendance: Attendance):
+        attendance.failed = True
+        attendance.error = AttendanceProcessError()
 
-    async def process_single_attendance(self, attendance_id: int) -> bool:
+    async def process_single_attendance(self, attendace_id) -> bool:
         self._log.debug('"process_single_attendance" called')
         with self._attendance_repo.session():
-            attendance = self._attendance_repo.get_by_db_id(db_id=attendance_id)
+            attendance = self._attendance_repo.get_by_db_id(attendace_id)
+            try:
+                await self.process_attendance(attendance=attendance)
+            except Exception:
+                self._handle_exc(attendance=attendance)
+            attendance.status = AttendanceStatus.COMPLETED
+            self._attendance_repo.save_or_update(attendance)
+        self._log.debug('returning from "process_single_attendance"')
+        return True
+
+    async def process_attendance(self, attendance: Attendance) -> bool:
+        self._log.debug('"process_attendance" called')
+        with self._attendance_repo.session():
             student = self._student_repo.get_by_db_id(attendance.student_id)
-            course = self._canvas_course_repo.get_by_db_id(attendance.course_id)
+            course = self._canvas_course_repo.get_by_db_id(attendance.course.id)
             # Invoke canvas login for course creator
             dto = auth_dto.LoginRequest(
                 username=course.canvas_user.username,
@@ -60,13 +81,12 @@ class AttendanceProcessService:
             # Send request to Canvas API to change attendance data
             await self._canvas_proxy_provider.change_attendance_status(
                 canvas_course_id=course.canvas_course_id,
-                canvas_assignment_id=attendance.canvas_assignment_id,
+                canvas_assignment_id=attendance.assignment.canvas_assignment_id,
                 canvas_student_id=student.canvas_user_id,
                 attendance_value=attendance.value,
                 cookies=auth_data,
             )
             # Change attendance status to 'COMPLETED'
-            attendance.status = "COMPLETED"
-            self._attendance_repo.save_or_update(attendance)
+
             self._log.debug('returning from "process_single_attendance"')
             return True
