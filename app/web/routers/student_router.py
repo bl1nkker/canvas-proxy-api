@@ -103,3 +103,16 @@ async def search_student_by_image(
         name=file.filename, content_type=file.content_type, stream=file.file
     )
     return JSONResponse(status_code=status.HTTP_200_OK, content=jsonable_encoder(dto))
+
+
+@router.post(
+    "/load-from-excel",
+)
+async def load_students_from_excel(
+    service: Annotated[StudentService, Depends(get_service)],
+    file: Annotated[UploadFile, File(...)],
+):
+    dto = service.load_students_from_excel(
+        name=file.filename, content_type=file.content_type, stream=file.file
+    )
+    return JSONResponse(status_code=status.HTTP_200_OK, content=jsonable_encoder(dto))

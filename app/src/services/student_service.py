@@ -1,5 +1,7 @@
 import io
 
+import numpy as np
+import pandas as pd
 import shortuuid
 
 from db.data_repo import Pagination
@@ -43,7 +45,9 @@ class StudentService:
             students = self._student_repo.list_paged(
                 page=page, page_size=page_size, query=query
             )
-            items = [student_dto.Read.from_dbmodel(student) for student in students.items]
+            items = [
+                student_dto.Read.from_dbmodel(student) for student in students.items
+            ]
         return Pagination(
             page=students.page,
             page_size=students.page_size,
@@ -159,3 +163,55 @@ class StudentService:
             )
             self._enrollment_repo.save_or_update(enrollment)
         return enrollment_dto.Read.from_dbmodel(enrollment)
+
+    def _read_students_from_file(self, file_path: str) -> list[student_dto.StudentFile]:
+        df = pd.read_excel(file_path, dtype={"Canvas ID": "Int64"})
+
+        students = []
+        for _, row in df.iterrows():
+            image_vector = row.get("Image Vector")
+            if isinstance(image_vector, str):
+                try:
+                    image_vector = image_vector.strip("[]")
+                    image_vector = np.fromstring(image_vector, sep=" ")
+                except Exception as e:
+                    raise e
+
+            student = student_dto.StudentFile(
+                name=row["Origin Name"],
+                origin_name=row["Origin Name"],
+                canvas_name=row["Canvas Name"],
+                canvas_login=row["Canvas Login"],
+                canvas_id=row["Canvas ID"],
+                image_id=row.get("Image ID"),
+                image_vector=image_vector,
+            )
+            students.append(student)
+
+        return students
+
+    def load_students_from_excel(
+        self, name: str, content_type: str, stream: io.BufferedReader
+    ):
+        metadata = self._upload_service.create_upload(
+            name=name, content_type=content_type, stream=stream
+        )
+        students: list[student_dto.StudentFile] = self._read_students_from_file(
+            file_path=metadata.path
+        )
+        with self._student_repo.session():
+            for file_student in students:
+                student = Student(
+                    web_id=shortuuid.uuid(),
+                    name=file_student.canvas_name,
+                    email=file_student.canvas_login,
+                    canvas_user_id=file_student.canvas_id,
+                )
+                self._student_repo.save_or_update(student)
+                vector = StudentVector(
+                    student_id=student.id,
+                    embedding=file_student.image_vector,
+                    web_id=shortuuid.uuid(),
+                )
+                self._student_vector_repo.save_or_update(vector)
+        return True
