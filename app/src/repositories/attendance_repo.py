@@ -24,6 +24,7 @@ class AttendanceRepo(DataRepo[Attendance]):
         query = query or self.query()
         return query.from_statement(
             text(
-                """SELECT * FROM app.attendances WHERE status = 'INITIATED' or status = 'IN_PROGRESS' FOR UPDATE SKIP LOCKED LIMIT 1"""
+                # TODO: Also filter by date
+                """SELECT * FROM app.attendances WHERE status = 'INITIATED' FOR UPDATE SKIP LOCKED LIMIT 1"""
             )
         ).first()
