@@ -92,15 +92,17 @@ async def save_student_image(
 
 
 @router.post(
-    "/search",
+    "/course/{course_web_id}/search",
     # dependencies=[Depends(partial(validate_content_type, ["image/jpeg"]))],
 )
 async def search_student_by_image(
+    course_web_id: str,
     service: Annotated[StudentService, Depends(get_service)],
     file: Annotated[UploadFile, File(...)],
 ):
     dto = service.search_student_by_image(
-        name=file.filename, content_type=file.content_type, stream=file.file
+        stream=file.file,
+        course_web_id=course_web_id,
     )
     return JSONResponse(status_code=status.HTTP_200_OK, content=jsonable_encoder(dto))
 

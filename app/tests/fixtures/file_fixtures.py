@@ -31,6 +31,11 @@ class FileFixtures:
             yield file
 
     @pytest.fixture
+    def sample_jpg_file(self, fs_config):
+        with open(os.path.join(fs_config.test_data_path, "temir.jpg"), "rb") as file:
+            yield file
+
+    @pytest.fixture
     def file_fs_repo(self):
         return FileFsRepo()
 

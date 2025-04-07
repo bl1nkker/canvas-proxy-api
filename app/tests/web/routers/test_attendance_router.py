@@ -1,5 +1,9 @@
+from unittest.mock import patch
+
+from src.dto import student_dto
 from src.enums.attendance_status import AttendanceStatus
 from src.enums.attendance_value import AttendanceValue
+from src.services.student_service import StudentService
 from tests.base_test import BaseTest
 from tests.web.web_application_test import WebApplicationTest
 
@@ -133,7 +137,7 @@ class TestAttendanceRouter(BaseTest, WebApplicationTest):
             value=AttendanceValue.EXCUSE,
         )
         response = client.put(
-            f"/api/attendances/v1/{attendance.web_id}",
+            f"/api/attendances/v1/{attendance.web_id}/mark",
             json={"value": AttendanceValue.COMPLETE.value},
         )
         assert response.status_code == 201
@@ -157,9 +161,63 @@ class TestAttendanceRouter(BaseTest, WebApplicationTest):
         cleanup_all,
     ):
         response = client.put(
-            "/api/attendances/v1/unknown-web-id",
+            "/api/attendances/v1/unknown-web-id/mark",
             json={"value": AttendanceValue.COMPLETE.value},
         )
         assert response.status_code == 404
         data = response.json()
         assert data["message"] == "_error_msg_attendance_not_found: unknown-web-id"
+
+    @patch.object(
+        StudentService,
+        "search_student_by_image",
+        return_value=student_dto.Read(
+            id=1, web_id="web-id-6", name="Test Testname", email="test@gmail.com"
+        ),
+    )
+    def test_mark_attendance_by_image(
+        self,
+        search_student_by_image_mock,
+        client,
+        create_canvas_user,
+        create_canvas_course,
+        create_assignment,
+        create_assignment_group,
+        sample_jpg_file,
+        create_attendance,
+        create_student,
+        cleanup_all,
+    ):
+        canvas_user = create_canvas_user(username="user")
+        course = create_canvas_course(canvas_user=canvas_user)
+        assignment_group = create_assignment_group(course=course, name="Test Group")
+        assignment = create_assignment(
+            assignment_group=assignment_group, name="sample assignment"
+        )
+        student = create_student()
+        create_attendance(
+            student=student,
+            assignment=assignment,
+            status=AttendanceStatus.COMPLETED,
+            value=AttendanceValue.EXCUSE,
+        )
+        response = client.put(
+            "/api/attendances/v1/mark/search",
+            data={"course_id": course.id, "assignment_id": assignment.id},
+            files={"file": ("test.jpg", sample_jpg_file, "image/jpeg")},
+        )
+        data = response.json()
+        assert response.status_code == 201
+        data = response.json()
+        assert data == {
+            "web_id": "web-id-7",
+            "assignment_id": 1,
+            "status": "INITIATED",
+            "value": "complete",
+            "student": {
+                "id": 1,
+                "web_id": "web-id-6",
+                "name": "Test Testname",
+                "email": "test@gmail.com",
+            },
+        }

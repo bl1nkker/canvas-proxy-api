@@ -39,6 +39,11 @@ class Mark(BaseModel):
     value: AttendanceValue
 
 
+class Search(BaseModel):
+    course_id: int
+    assignment_id: int
+
+
 class CanvasRead(BaseModel):
     canvas_assignment_id: int = Field(validation_alias="assignment_id")
     student_id: int = Field(validation_alias="user_id")
