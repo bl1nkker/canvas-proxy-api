@@ -304,12 +304,14 @@ class TestCanvasAssignmentService(BaseTest):
             "canvas_assignment_group_id": 14761,
             "assignments": [
                 {
+                    "id": 1,
                     "web_id": "web-id-5",
                     "canvas_assignment_id": 67301,
                     "name": "Att-W1-1",
                     "assignment_group_id": 1,
                 },
                 {
+                    "id": 2,
                     "web_id": "web-id-6",
                     "canvas_assignment_id": 68220,
                     "name": "Att-w2-2",

@@ -12,6 +12,7 @@ class CanvasRead(BaseModel):
 
 
 class Read(BaseModel):
+    id: int
     web_id: str
     canvas_assignment_id: int
     name: str
@@ -20,6 +21,7 @@ class Read(BaseModel):
     @classmethod
     def from_dbmodel(cls, item):
         return cls(
+            id=item.id,
             web_id=item.web_id,
             name=item.name,
             assignment_group_id=item.assignment_group_id,
