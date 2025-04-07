@@ -1,9 +1,12 @@
+from unittest.mock import patch
+
 import pytest
 
-from src.dto import attendance_dto
+from src.dto import attendance_dto, student_dto
 from src.enums.attendance_status import AttendanceStatus
 from src.enums.attendance_value import AttendanceValue
 from src.errors.types import NotFoundError
+from src.services.student_service import StudentService
 from tests.base_test import BaseTest
 
 
@@ -159,3 +162,171 @@ class TestAttendanceService(BaseTest):
             assert len(atts) == 1
             assert atts[0].value == AttendanceValue.COMPLETE
             assert atts[0].status == AttendanceStatus.INITIATED
+
+    @patch.object(
+        StudentService,
+        "search_student_by_image",
+        return_value=student_dto.Read(
+            id=1, web_id="web-id-6", name="Test Testname", email="test@gmail.com"
+        ),
+    )
+    def test_mark_attendance_by_image(
+        self,
+        search_student_by_image_mock,
+        attendance_service,
+        create_canvas_user,
+        create_canvas_course,
+        create_assignment_group,
+        create_assignment,
+        sample_jpg_file,
+        create_student,
+        create_attendance,
+        attendance_repo,
+        cleanup_all,
+    ):
+        # Create student, enrollment and assignment
+        canvas_user = create_canvas_user(username="user")
+        course = create_canvas_course(canvas_user=canvas_user)
+        assignment_group = create_assignment_group(
+            course=course,
+            name="Сабаққа қатысу/Посещаемость",
+            canvas_assignment_group_id=14761,
+        )
+        assignment = create_assignment(
+            assignment_group=assignment_group,
+            name="target assignment",
+            canvas_assignment_id=67301,
+        )
+        student = create_student()
+        create_attendance(
+            student=student,
+            assignment=assignment,
+            status=AttendanceStatus.IN_PROGRESS,
+            value=AttendanceValue.INCOMPLETE,
+        )
+        dto = attendance_dto.Search(
+            course_id=course.id,
+            assignment_id=assignment.id,
+        )
+        # Get student by image
+        result = attendance_service.mark_attendance_by_image(
+            dto=dto, stream=sample_jpg_file
+        )
+        assert result is not None
+        assert result.status is AttendanceStatus.INITIATED
+        assert result.value is AttendanceValue.COMPLETE
+        assert result.student.web_id == "web-id-6"
+        assert result.student.name == "Test Testname"
+
+        with attendance_repo.session():
+            attendances = attendance_repo.list_all()
+            assert len(attendances) == 1
+            assert attendances[0].status is AttendanceStatus.INITIATED
+            assert attendances[0].value is AttendanceValue.COMPLETE
+            assert attendances[0].student_id == 1
+
+    @patch.object(
+        StudentService,
+        "search_student_by_image",
+        return_value=student_dto.Read(
+            id=1, web_id="web-id-6", name="Test Testname", email="test@gmail.com"
+        ),
+    )
+    def test_mark_attendance_by_image_should_create_attendance_if_not_exists(
+        self,
+        search_student_by_image_mock,
+        attendance_service,
+        create_canvas_user,
+        create_canvas_course,
+        create_assignment_group,
+        create_assignment,
+        sample_jpg_file,
+        create_student,
+        create_attendance,
+        attendance_repo,
+        cleanup_all,
+    ):
+        # Create student, enrollment and assignment
+        canvas_user = create_canvas_user(username="user")
+        course = create_canvas_course(canvas_user=canvas_user)
+        assignment_group = create_assignment_group(
+            course=course,
+            name="Сабаққа қатысу/Посещаемость",
+            canvas_assignment_group_id=14761,
+        )
+        assignment = create_assignment(
+            assignment_group=assignment_group,
+            name="target assignment",
+            canvas_assignment_id=67301,
+        )
+        create_student()
+        dto = attendance_dto.Search(
+            course_id=course.id,
+            assignment_id=assignment.id,
+        )
+        # Get student by image
+        result = attendance_service.mark_attendance_by_image(
+            dto=dto, stream=sample_jpg_file
+        )
+        assert result is not None
+        assert result.status is AttendanceStatus.INITIATED
+        assert result.value is AttendanceValue.COMPLETE
+        assert result.student.web_id == "web-id-6"
+        assert result.student.name == "Test Testname"
+
+        with attendance_repo.session():
+            attendances = attendance_repo.list_all()
+            assert len(attendances) == 1
+            assert attendances[0].status is AttendanceStatus.INITIATED
+            assert attendances[0].value is AttendanceValue.COMPLETE
+            assert attendances[0].student_id == 1
+
+    @patch.object(
+        StudentService,
+        "search_student_by_image",
+        return_value=student_dto.Read(
+            id=1, web_id="web-id-6", name="Test Testname", email="test@gmail.com"
+        ),
+    )
+    def test_mark_attendance_by_image_should_raise_when_course_not_found(
+        self,
+        search_student_by_image_mock,
+        attendance_service,
+        create_canvas_user,
+        create_canvas_course,
+        create_assignment_group,
+        create_assignment,
+        sample_jpg_file,
+        create_student,
+        create_attendance,
+        attendance_repo,
+        cleanup_all,
+    ):
+        # Create student, enrollment and assignment
+        canvas_user = create_canvas_user(username="user")
+        course = create_canvas_course(canvas_user=canvas_user)
+        assignment_group = create_assignment_group(
+            course=course,
+            name="Сабаққа қатысу/Посещаемость",
+            canvas_assignment_group_id=14761,
+        )
+        assignment = create_assignment(
+            assignment_group=assignment_group,
+            name="target assignment",
+            canvas_assignment_id=67301,
+        )
+        student = create_student()
+        create_attendance(
+            student=student,
+            assignment=assignment,
+            status=AttendanceStatus.COMPLETED,
+            value=AttendanceValue.EXCUSE,
+        )
+        dto = attendance_dto.Search(
+            course_id=999,
+            assignment_id=assignment.id,
+        )
+        # Get student by image
+        with pytest.raises(NotFoundError) as exc:
+            attendance_service.mark_attendance_by_image(dto=dto, stream=sample_jpg_file)
+        assert exc.value.message == "_error_msg_course_not_found: 999"

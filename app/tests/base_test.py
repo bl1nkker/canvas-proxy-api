@@ -130,13 +130,19 @@ class BaseTest(DbTest, FileFixtures):
 
     @pytest.fixture
     def attendance_service(
-        self, attendance_repo, student_repo, assignment_repo, canvas_course_repo
+        self,
+        attendance_repo,
+        student_repo,
+        assignment_repo,
+        canvas_course_repo,
+        student_service,
     ):
         return AttendanceService(
             attendance_repo=attendance_repo,
             student_repo=student_repo,
             assignment_repo=assignment_repo,
             canvas_course_repo=canvas_course_repo,
+            student_service=student_service,
         )
 
     @pytest.fixture
