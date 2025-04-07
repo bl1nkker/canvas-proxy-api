@@ -8,6 +8,7 @@ from db.data_repo import Pagination
 from ml import face_encoder
 from src.dto import auth_dto, enrollment_dto, student_dto
 from src.errors.types import InvalidDataError, NotFoundError
+from src.errors.utils import write_to_temp_file
 from src.models.enrollment import Enrollment
 from src.models.student import Student
 from src.models.student_vector import StudentVector
@@ -125,22 +126,31 @@ class StudentService:
             self._student_vector_repo.save_or_update(vector)
         return student_dto.Read.from_dbmodel(student)
 
+    # TODO: Add tests
     def search_student_by_image(
-        self, name: str, content_type: str, stream: io.BufferedReader
+        self,
+        course_web_id: str,
+        stream: io.BufferedReader,
     ) -> student_dto.Read:
-        metadata = self._upload_service.create_upload(
-            name=name, content_type=content_type, stream=stream
-        )
-        image_embed = face_encoder.get_image_embedding(
-            image_path=metadata.path, content_type=metadata.content_type
-        )
+        with self._canvas_course_repo.session():
+            course = self._canvas_course_repo.get_by_web_id(web_id=course_web_id)
+            if not course:
+                raise NotFoundError(
+                    message=f"_error_msg_course_not_found: {course_web_id}"
+                )
+        with self._enrollment_repo.session():
+            query = self._enrollment_repo.filter_by_course_id(course_id=course.id)
+            enrollments = self._enrollment_repo.list_all(query=query)
+            student_ids = [enrollment.student_id for enrollment in enrollments]
+        with write_to_temp_file(stream=stream) as file_path:
+            image_embed = face_encoder.get_image_embedding(image_path=file_path)
         with self._student_vector_repo.session():
-            image = self._student_vector_repo.search_by_embedding(embedding=image_embed)
+            image = self._student_vector_repo.search_by_embedding(
+                embedding=image_embed, student_ids=student_ids
+            )
         if not image:
             raise NotFoundError(message="_error_msg_student_not_found")
-        with self._student_repo.session():
-            student = self._student_repo.get_by_db_id(db_id=image.student_id)
-        return student_dto.Read.from_dbmodel(student)
+        return student_dto.Read.from_dbmodel(image.student)
 
     def enroll_student(self, web_id: str, course_web_id: str):
         with self._student_repo.session():

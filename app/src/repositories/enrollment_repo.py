@@ -13,3 +13,7 @@ class EnrollmentRepo(DataRepo[Enrollment]):
             .filter(self._type.course_id == course_id)
             .first()
         )
+
+    def filter_by_course_id(self, course_id: int, query=None):
+        query = query or self.query()
+        return query.filter(self._type.course_id == course_id)
