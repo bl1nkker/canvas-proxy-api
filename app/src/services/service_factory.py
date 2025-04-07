@@ -86,6 +86,7 @@ class ServiceFactory:
             attendance_repo=self.attendance_repo(db_session=db_session),
             student_repo=self.student_repo(db_session=db_session),
             canvas_course_repo=self.canvas_course_repo(db_session=db_session),
+            student_service=self.student_service(db_session=db_session),
         )
 
     def canvas_assignment_service(self, db_session):
