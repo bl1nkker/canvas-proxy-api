@@ -76,7 +76,7 @@ catch() {
   exit 1
 }
 
-PROJECT=app
+PROJECT=canvas-proxy-api
 MAIN_PACKAGE=src
 
 set -eux
