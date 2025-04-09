@@ -54,14 +54,12 @@ class AttendanceService:
         return attendance_dto.Read.from_dbmodel(attendance)
 
     def list_attendances_by_assignment(
-        self, assignment_web_id: str, page=1, page_size=10, order_by="id", asc=True
+        self, assignment_id: int, page=1, page_size=10, order_by="id", asc=True
     ) -> Pagination[attendance_dto.Read]:
         with self._assignment_repo.session():
-            assignment = self._assignment_repo.get_by_web_id(web_id=assignment_web_id)
+            assignment = self._assignment_repo.get_by_db_id(db_id=assignment_id)
             if not assignment:
-                raise NotFoundError(
-                    f"_error_msg_assignment_not_found:{assignment_web_id}"
-                )
+                raise NotFoundError(f"_error_msg_assignment_not_found:{assignment_id}")
         with self._attendance_repo.session():
             query = self._attendance_repo.order_by(order_by=order_by, asc=asc)
             query = self._attendance_repo.filter_by_assignment_id(

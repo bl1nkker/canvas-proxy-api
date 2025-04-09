@@ -25,7 +25,7 @@ def list_attendance_by_assignment_id(
     service: Annotated[AttendanceService, Depends(get_service)],
 ):
     result = service.list_attendances_by_assignment(
-        assignment_web_id=filter_params.assignment_web_id, **pagination_params
+        assignment_id=filter_params.assignment_id, **pagination_params
     )
     return JSONResponse(
         status_code=status.HTTP_200_OK, content=jsonable_encoder(result)

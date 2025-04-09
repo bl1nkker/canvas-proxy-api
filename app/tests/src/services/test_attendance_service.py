@@ -110,23 +110,21 @@ class TestAttendanceService(BaseTest):
             student = create_student()
             create_attendance(student=student, assignment=assignment)
         result = attendance_service.list_attendances_by_assignment(
-            assignment_web_id=assignment.web_id
+            assignment_id=assignment.id
         )
         assert result.page == 1
         assert result.page_size == 10
         assert result.total == 5
         assert len(result.items) == 5
 
-    def test_list_attendances_by_assignment_should_raise_on_invalid_assignment_web_id(
+    def test_list_attendances_by_assignment_should_raise_on_invalid_assignment_id(
         self,
         attendance_service,
         cleanup_all,
     ):
         with pytest.raises(NotFoundError) as exc:
-            attendance_service.list_attendances_by_assignment(
-                assignment_web_id="unknown-web-id"
-            )
-        assert exc.value.message == "_error_msg_assignment_not_found:unknown-web-id"
+            attendance_service.list_attendances_by_assignment(assignment_id=999)
+        assert exc.value.message == "_error_msg_assignment_not_found:999"
 
     def test_mark_attendance(
         self,
