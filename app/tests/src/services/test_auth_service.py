@@ -3,7 +3,7 @@ from unittest.mock import call, patch
 import pytest
 
 from src.dto import auth_dto
-from src.errors.types import InvalidCredentialsError, InvalidDataError, NotFoundError
+from src.errors.types import InvalidCredentialsError, InvalidDataError
 from tests.base_test import BaseTest
 
 
@@ -12,7 +12,7 @@ class TestAuthService(BaseTest):
     @pytest.mark.asyncio
     @patch("aiohttp.ClientSession.get")
     @patch("aiohttp.ClientSession.post")
-    async def test_get_canvas_auth_data(
+    async def test_signin(
         self,
         mock_post,
         mock_get,
@@ -25,7 +25,7 @@ class TestAuthService(BaseTest):
         dto = auth_dto.LoginRequest(username="test@gmail.com", password="test-pwd")
         mock_get.return_value = canvas_ok_response
         mock_post.return_value = canvas_ok_response
-        user_data, auth_data = await auth_service.get_canvas_auth_data(dto=dto)
+        user_data, auth_data = await auth_service.signin(dto=dto)
         assert user_data.dict(by_alias=True) == {
             "username": "test@gmail.com",
             "web_id": "web-id-1",
@@ -90,7 +90,7 @@ class TestAuthService(BaseTest):
             auth_dto.LoginRequest(username="test@gmail.com", password="incorrect-pwd"),
         ],
     )
-    async def test_get_canvas_auth_data_should_raise_on_invalid_credentials(
+    async def test_signin_should_raise_on_invalid_credentials(
         self,
         login_request,
         create_canvas_user,
@@ -99,19 +99,35 @@ class TestAuthService(BaseTest):
     ):
         create_canvas_user(username="test@gmail.com", password="test-pwd")
         with pytest.raises(InvalidCredentialsError):
-            await auth_service.get_canvas_auth_data(dto=login_request)
+            await auth_service.signin(dto=login_request)
 
     @pytest.mark.asyncio
-    async def test_get_canvas_auth_data_should_raise_when_canvas_user_not_found(
+    @patch("aiohttp.ClientSession.get")
+    @patch("aiohttp.ClientSession.post")
+    async def test_signin_signup_should_create_new_user_when_user_not_found(
         self,
-        create_user,
+        mock_post,
+        mock_get,
         auth_service,
+        canvas_ok_response,
+        user_repo,
+        canvas_user_repo,
         cleanup_all,
     ):
-        create_user(username="test@gmail.com", password="test-pwd")
+        mock_get.return_value = canvas_ok_response
+        mock_post.return_value = canvas_ok_response
         dto = auth_dto.LoginRequest(username="test@gmail.com", password="test-pwd")
-        with pytest.raises(NotFoundError):
-            await auth_service.get_canvas_auth_data(dto=dto)
+        await auth_service.signin_signup(dto=dto)
+        with user_repo.session():
+            users = user_repo.list_all()
+            assert len(users) == 1
+            assert users[0].username == "test@gmail.com"
+            user_id = users[0].id
+        with canvas_user_repo.session():
+            canvas_users = canvas_user_repo.list_all()
+            assert len(canvas_users) == 1
+            assert canvas_users[0].canvas_id == "1"
+            assert canvas_users[0].user_id == user_id
 
     @pytest.mark.asyncio
     @patch("aiohttp.ClientSession.get")

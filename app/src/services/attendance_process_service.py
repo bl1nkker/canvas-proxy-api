@@ -77,7 +77,7 @@ class AttendanceProcessService:
                 username=course.canvas_user.username,
                 password=course.canvas_user.password,
             )
-            _, auth_data = await self._auth_service.get_canvas_auth_data(dto=dto)
+            _, auth_data = await self._auth_service.signin(dto=dto)
             # Send request to Canvas API to change attendance data
             await self._canvas_proxy_provider.change_attendance_status(
                 canvas_course_id=course.canvas_course_id,

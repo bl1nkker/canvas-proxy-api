@@ -21,7 +21,7 @@ def get_service(db_session: Annotated[Session, Depends(get_db_session)]):
 async def signin(
     dto: auth_dto.LoginRequest, service: Annotated[AuthService, Depends(get_service)]
 ):
-    result, auth_data = await service.get_canvas_auth_data(dto=dto)
+    result, auth_data = await service.signin(dto=dto)
     response = JSONResponse(
         status_code=status.HTTP_200_OK,
         content=jsonable_encoder(result),

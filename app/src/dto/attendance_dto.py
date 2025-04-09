@@ -44,6 +44,10 @@ class Search(BaseModel):
     assignment_id: int
 
 
+class Load(BaseModel):
+    course_id: int
+
+
 class CanvasRead(BaseModel):
     canvas_assignment_id: int = Field(validation_alias="assignment_id")
     student_id: int = Field(validation_alias="user_id")

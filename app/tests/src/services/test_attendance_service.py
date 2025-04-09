@@ -2,12 +2,13 @@ from unittest.mock import patch
 
 import pytest
 
-from src.dto import attendance_dto, student_dto
+from src.dto import attendance_dto, auth_dto, student_dto
 from src.enums.attendance_status import AttendanceStatus
 from src.enums.attendance_value import AttendanceValue
 from src.errors.types import NotFoundError
 from src.services.student_service import StudentService
 from tests.base_test import BaseTest
+from tests.fixtures import sample_data
 
 
 class TestAttendanceService(BaseTest):
@@ -328,3 +329,101 @@ class TestAttendanceService(BaseTest):
         with pytest.raises(NotFoundError) as exc:
             attendance_service.mark_attendance_by_image(dto=dto, stream=sample_jpg_file)
         assert exc.value.message == "_error_msg_course_not_found: 999"
+
+    @pytest.mark.asyncio
+    @patch("aiohttp.ClientSession.get")
+    async def test_load_course_attendances_from_canvas_should_create_attendances(
+        self,
+        mock_get,
+        canvas_get_student_attendances_ok_response,
+        attendance_service,
+        create_student,
+        create_enrollment,
+        create_canvas_user,
+        create_canvas_course,
+        create_assignment_group,
+        create_assignment,
+        attendance_repo,
+        cleanup_all,
+    ):
+        mock_get.return_value = canvas_get_student_attendances_ok_response
+        canvas_user = create_canvas_user(username="user")
+        course = create_canvas_course(canvas_user=canvas_user)
+        assignment_group = create_assignment_group(
+            course=course,
+            name="Сабаққа қатысу/Посещаемость",
+            canvas_assignment_group_id=14761,
+        )
+        assignment_ids = [67301, 73376, 68254]
+        for ass_id in assignment_ids:
+            create_assignment(
+                assignment_group=assignment_group,
+                name=f"assignment#{ass_id}",
+                canvas_assignment_id=ass_id,
+            )
+
+        student1 = create_student(canvas_user_id=18728)
+        student2 = create_student(canvas_user_id=18729)
+        create_enrollment(course=course, student=student1)
+        create_enrollment(course=course, student=student2)
+
+        result = await attendance_service.load_course_attendances_from_canvas(
+            dto=attendance_dto.Load(course_id=course.id),
+            canvas_auth_data=auth_dto.CanvasAuthData(**sample_data.canvas_auth_data),
+        )
+        assert result is True
+        with attendance_repo.session():
+            atts = attendance_repo.list_all()
+            assert len(atts) == 6
+            for att in atts:
+                assert att.status == AttendanceStatus.COMPLETED
+                assert att.value is not None
+
+    @pytest.mark.asyncio
+    @patch("aiohttp.ClientSession.get")
+    async def test_load_course_attendances_from_canvas_should_skip_attendance_if_not_exists(
+        self,
+        mock_get,
+        canvas_get_student_attendances_ok_response,
+        attendance_service,
+        create_student,
+        create_enrollment,
+        create_canvas_user,
+        create_canvas_course,
+        create_assignment_group,
+        create_assignment,
+        attendance_repo,
+        cleanup_all,
+    ):
+        mock_get.return_value = canvas_get_student_attendances_ok_response
+        canvas_user = create_canvas_user(username="user")
+        course = create_canvas_course(canvas_user=canvas_user)
+        assignment_group = create_assignment_group(
+            course=course,
+            name="Сабаққа қатысу/Посещаемость",
+            canvas_assignment_group_id=14761,
+        )
+        assignment_ids = [67301, 73376]
+        for ass_id in assignment_ids:
+            create_assignment(
+                assignment_group=assignment_group,
+                name=f"assignment#{ass_id}",
+                canvas_assignment_id=ass_id,
+            )
+
+        student1 = create_student(canvas_user_id=18728)
+        student2 = create_student(canvas_user_id=18729)
+        create_enrollment(course=course, student=student1)
+        create_enrollment(course=course, student=student2)
+
+        result = await attendance_service.load_course_attendances_from_canvas(
+            dto=attendance_dto.Load(course_id=course.id),
+            canvas_auth_data=auth_dto.CanvasAuthData(**sample_data.canvas_auth_data),
+        )
+        assert result is True
+        with attendance_repo.session():
+            atts = attendance_repo.list_all()
+            assert len(atts) == 4
+            for att in atts:
+                assert att.status == AttendanceStatus.COMPLETED
+                assert att.value is not None

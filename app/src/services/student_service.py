@@ -145,6 +145,7 @@ class StudentService:
                 )
         with self._enrollment_repo.session():
             query = self._enrollment_repo.filter_by_course_id(course_id=course.id)
+            # because of this this method always returns enrolled student
             enrollments = self._enrollment_repo.list_all(query=query)
             student_ids = [enrollment.student_id for enrollment in enrollments]
         with write_to_temp_file(stream=stream) as file_path:

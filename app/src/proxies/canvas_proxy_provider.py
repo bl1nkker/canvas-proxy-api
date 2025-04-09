@@ -67,3 +67,15 @@ class CanvasProxyProvider:
             cookies=cookies.model_dump(by_alias=True),
             attendance_value=attendance_value,
         )
+
+    async def get_student_attendances(
+        self,
+        canvas_course_id: int,
+        student_ids: list[int],
+        cookies: auth_dto.CanvasAuthData,
+    ):
+        return await self._proxy.get_student_attendances(
+            canvas_course_id=canvas_course_id,
+            student_ids=student_ids,
+            cookies=cookies.model_dump(by_alias=True),
+        )

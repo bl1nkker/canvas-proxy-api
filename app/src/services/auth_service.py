@@ -23,37 +23,22 @@ class AuthService:
         self, dto: auth_dto.Signup
     ) -> tuple[auth_dto.UserData, auth_dto.CanvasAuthData]:
         with self._user_repo.session():
-            user = self._user_repo.get_by_username(username=dto.username)
-            if user is not None:
-                raise InvalidDataError(
-                    message=f"_error_msg_user_with_username_already_exists:{dto.username}"
-                )
-            user = User(username=dto.username, web_id=shortuuid.uuid())
-            user.set_password(password=dto.password)
-            user = self._user_repo.save_or_update(user)
+            user = self._create_user(dto=dto)
 
-        # TODO: IMPROVE USER CHECK BEFORE CREATING AND TEST
-        auth_data = await self._canvas_proxy_provider.get_auth_data(
-            username=dto.username, password=dto.password
-        )
-
-        if not auth_data:
-            raise NotFoundError(
-                message=f"_error_msg_canvas_user_not_found:{user.username}"
+            # TODO: IMPROVE USER CHECK BEFORE CREATING AND TEST
+            auth_data = await self._get_canvas_auth_data(
+                username=dto.username, password=dto.password
             )
 
-        with self._canvas_user_repo.session():
-            canvas_user = CanvasUser(
+            self._create_canvas_user(
                 user_id=user.id,
-                web_id=shortuuid.uuid(),
+                password=dto.password,
                 username=dto.username,
-                canvas_id=user.id,
+                canvas_user_id=user.id,
             )
-            canvas_user.set_password(password=dto.password)
-            self._canvas_user_repo.save_or_update(canvas_user)
-        return auth_dto.UserData.from_dbmodel(user), auth_data
+            return auth_dto.UserData.from_dbmodel(user), auth_data
 
-    async def get_canvas_auth_data(
+    async def signin(
         self, dto: auth_dto.LoginRequest
     ) -> tuple[auth_dto.UserData, auth_dto.CanvasAuthData]:
         with self._user_repo.session():
@@ -68,12 +53,54 @@ class AuthService:
                     message=f"_error_msg_canvas_user_not_found:{user.username}"
                 )
 
-        auth_data: auth_dto.CanvasAuthData = (
-            await self._canvas_proxy_provider.get_auth_data(
-                username=canvas_user.username, password=canvas_user.password
-            )
+        auth_data = await self._get_canvas_auth_data(
+            username=canvas_user.username, password=canvas_user.password
         )
         return (
             auth_dto.UserData.from_dbmodel(user),
             auth_data,
         )
+
+    async def signin_signup(self, dto: auth_dto.LoginRequest):
+        with self._user_repo.session():
+            user = self._user_repo.get_by_username(username=dto.username)
+            if not user:
+                # Create user and canvas user
+                return await self.create_user(dto=dto)
+            else:
+                return await self.signin(dto=dto)
+
+    def _create_user(self, dto: auth_dto.Signup) -> User:
+        with self._user_repo.session():
+            user = self._user_repo.get_by_username(username=dto.username)
+            if user is not None:
+                raise InvalidDataError(
+                    message=f"_error_msg_user_with_username_already_exists:{dto.username}"
+                )
+            user = User(username=dto.username, web_id=shortuuid.uuid())
+            user.set_password(password=dto.password)
+            return self._user_repo.save_or_update(user)
+
+    def _create_canvas_user(
+        self, user_id: int, password: str, username: str, canvas_user_id: int
+    ) -> CanvasUser:
+        with self._canvas_user_repo.session():
+            canvas_user = CanvasUser(
+                user_id=user_id,
+                web_id=shortuuid.uuid(),
+                username=username,
+                canvas_id=canvas_user_id,
+            )
+            canvas_user.set_password(password=password)
+            return self._canvas_user_repo.save_or_update(canvas_user)
+
+    async def _get_canvas_auth_data(
+        self, username: str, password: str
+    ) -> auth_dto.CanvasAuthData:
+        auth_data = await self._canvas_proxy_provider.get_auth_data(
+            username=username, password=password
+        )
+
+        if not auth_data:
+            raise NotFoundError(message=f"_error_msg_canvas_user_not_found:{username}")
+        return auth_data

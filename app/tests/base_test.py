@@ -163,8 +163,10 @@ class BaseTest(DbTest, FileFixtures):
         canvas_course_repo,
         assignment_repo,
         assignment_group_repo,
+        student_service,
     ):
         return CanvasAssignmentService(
+            student_service=student_service,
             assignment_group_repo=assignment_group_repo,
             attendance_service=attendance_service,
             canvas_course_repo=canvas_course_repo,
@@ -503,5 +505,16 @@ class BaseTest(DbTest, FileFixtures):
         mock_response.__aenter__.return_value = mock_response
         mock_response.__aexit__.return_value = None
         mock_response.json.return_value = sample_data.canvas_get_students_response
+
+        return mock_response
+
+    @pytest.fixture
+    def canvas_get_student_attendances_ok_response(self):
+        mock_response = AsyncMock()
+        mock_response.__aenter__.return_value = mock_response
+        mock_response.__aexit__.return_value = None
+        mock_response.json.return_value = (
+            sample_data.canvas_get_student_attendances_response
+        )
 
         return mock_response
