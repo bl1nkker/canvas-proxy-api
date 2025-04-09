@@ -163,10 +163,8 @@ class BaseTest(DbTest, FileFixtures):
         canvas_course_repo,
         assignment_repo,
         assignment_group_repo,
-        student_service,
     ):
         return CanvasAssignmentService(
-            student_service=student_service,
             assignment_group_repo=assignment_group_repo,
             attendance_service=attendance_service,
             canvas_course_repo=canvas_course_repo,

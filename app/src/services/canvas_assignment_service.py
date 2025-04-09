@@ -11,7 +11,6 @@ from src.repositories.assignment_group_repo import AssignmentGroupRepo
 from src.repositories.assignment_repo import AssignmentRepo
 from src.repositories.canvas_course_repo import CanvasCourseRepo
 from src.services.attendance_service import AttendanceService
-from src.services.student_service import StudentService
 
 
 class CanvasAssignmentService:
@@ -21,7 +20,6 @@ class CanvasAssignmentService:
         canvas_course_repo: CanvasCourseRepo,
         assignment_repo: AssignmentRepo,
         assignment_group_repo: AssignmentGroupRepo,
-        student_service: StudentService,
         canvas_proxy_provider_cls=CanvasProxyProvider,
     ):
         self._canvas_proxy_provider = canvas_proxy_provider_cls()
@@ -29,7 +27,6 @@ class CanvasAssignmentService:
         self._assignment_repo = assignment_repo
         self._assignment_group_repo = assignment_group_repo
         self._attendance_service = attendance_service
-        self._student_service = student_service
 
     async def get_attendance_assignment_group(
         self, web_id: str, canvas_auth_data: auth_dto.CanvasAuthData
