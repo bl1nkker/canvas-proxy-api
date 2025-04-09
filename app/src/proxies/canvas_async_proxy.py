@@ -178,11 +178,12 @@ class CanvasAsyncProxy:
             async with session.get(url, cookies=cookies) as response:
                 response.raise_for_status()
                 response_body = await response.json()
-                return [
+                students = [
                     student_dto.CanvasRead.model_validate(item)
                     for item in response_body
                     if is_student(canvas_course_id, item)
                 ]
+                return students
 
     async def _get_assignment_secure_params(
         self,

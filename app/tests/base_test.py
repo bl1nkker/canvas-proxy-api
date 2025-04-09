@@ -496,3 +496,12 @@ class BaseTest(DbTest, FileFixtures):
         mock_response.json.return_value = sample_data.canvas_courses_data
 
         return mock_response
+
+    @pytest.fixture
+    def canvas_get_students_ok_response(self):
+        mock_response = AsyncMock()
+        mock_response.__aenter__.return_value = mock_response
+        mock_response.__aexit__.return_value = None
+        mock_response.json.return_value = sample_data.canvas_get_students_response
+
+        return mock_response

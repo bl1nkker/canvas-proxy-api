@@ -96,9 +96,14 @@ class StudentService:
                         canvas_user_id=student.canvas_user_id,
                     )
                     self._student_repo.save_or_update(student_db)
-                    students.append(student_db)
+                students.append(student_db)
+
         for student in students:
-            self.enroll_student(web_id=student.web_id, course_web_id=course_web_id)
+            try:
+                self.enroll_student(web_id=student.web_id, course_web_id=course_web_id)
+            except InvalidDataError:
+                # if student enrollment already exists
+                pass
 
         return [student_dto.Read.from_dbmodel(student) for student in students]
 
@@ -148,31 +153,33 @@ class StudentService:
             image = self._student_vector_repo.search_by_embedding(
                 embedding=image_embed, student_ids=student_ids
             )
-        if not image:
-            raise NotFoundError(message="_error_msg_student_not_found")
-        return student_dto.Read.from_dbmodel(image.student)
+            if not image:
+                raise NotFoundError(message="_error_msg_student_not_found")
+            return student_dto.Read.from_dbmodel(image.student)
 
     def enroll_student(self, web_id: str, course_web_id: str):
         with self._student_repo.session():
             student = self._student_repo.get_by_web_id(web_id=web_id)
-        if not student:
-            raise NotFoundError(message=f"_error_msg_student_not_found:{web_id}")
+            if not student:
+                raise NotFoundError(message=f"_error_msg_student_not_found:{web_id}")
         with self._canvas_course_repo.session():
             course = self._canvas_course_repo.get_by_web_id(web_id=course_web_id)
-        if not course:
-            raise NotFoundError(message=f"_error_msg_course_not_found:{course_web_id}")
+            if not course:
+                raise NotFoundError(
+                    message=f"_error_msg_course_not_found:{course_web_id}"
+                )
         with self._enrollment_repo.session():
             enrollment = self._enrollment_repo.get_by_student_and_course_id(
                 student_id=student.id, course_id=course.id
             )
-        if enrollment:
-            raise InvalidDataError(message="_error_msg_enrollment_already_exists")
+            if enrollment:
+                raise InvalidDataError(message="_error_msg_enrollment_already_exists")
         with self._enrollment_repo.session():
             enrollment = Enrollment(
                 student_id=student.id, course_id=course.id, web_id=shortuuid.uuid()
             )
             self._enrollment_repo.save_or_update(enrollment)
-        return enrollment_dto.Read.from_dbmodel(enrollment)
+            return enrollment_dto.Read.from_dbmodel(enrollment)
 
     def _read_students_from_file(self, file_path: str) -> list[student_dto.StudentFile]:
         df = pd.read_excel(file_path, dtype={"Canvas ID": "Int64"})
