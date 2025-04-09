@@ -8,7 +8,7 @@ from src.enums.attendance_value import AttendanceValue
 
 
 class FilterParams(BaseModel):
-    assignment_web_id: str
+    assignment_id: int
 
 
 class Create(BaseModel):
@@ -42,6 +42,10 @@ class Mark(BaseModel):
 class Search(BaseModel):
     course_id: int
     assignment_id: int
+
+
+class Load(BaseModel):
+    course_id: int
 
 
 class CanvasRead(BaseModel):

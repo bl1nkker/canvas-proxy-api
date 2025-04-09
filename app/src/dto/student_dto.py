@@ -2,6 +2,8 @@ from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
+from src.enums.attendance_value import AttendanceValue
+
 
 class Create(BaseModel):
     name: str
@@ -13,6 +15,27 @@ class CanvasRead(BaseModel):
     name: str
     email: str
     canvas_user_id: int = Field(validation_alias="id")
+
+
+class CanvasSubmission(BaseModel):
+    id: int
+    grade: str | None
+    assignment_id: int
+    excused: bool | None
+
+    @property
+    def value(self):
+        if self.grade is None:
+            if self.excused is True:
+                return AttendanceValue.EXCUSE
+        if self.grade in AttendanceValue:
+            return AttendanceValue(self.grade)
+        return AttendanceValue.INCOMPLETE
+
+
+class CanvasStudentSubmissions(BaseModel):
+    id: int = Field(validation_alias="user_id")
+    submissions: list[CanvasSubmission]
 
 
 class Read(BaseModel):

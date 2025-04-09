@@ -31,7 +31,7 @@ class TestAttendanceRouter(BaseTest, WebApplicationTest):
             student = create_student()
             create_attendance(student=student, assignment=assignment)
         response = client.get(
-            f"/api/attendances/v1/?assignment_web_id={assignment.web_id}&page=1&page_size=100"
+            f"/api/attendances/v1/?assignment_id={assignment.id}&page=1&page_size=100"
         )
         assert response.status_code == 200
         data = response.json()
@@ -102,15 +102,15 @@ class TestAttendanceRouter(BaseTest, WebApplicationTest):
             },
         ]
 
-    def test_list_attendances_by_assignment_should_raise_on_invalid_assignment_web_id(
+    def test_list_attendances_by_assignment_should_raise_on_invalid_assignment_id(
         self,
         client,
         cleanup_all,
     ):
-        response = client.get("/api/attendances/v1/?assignment_web_id=unknown-web-id")
+        response = client.get("/api/attendances/v1/?assignment_id=999")
         assert response.status_code == 404
         data = response.json()
-        assert data["message"] == "_error_msg_assignment_not_found:unknown-web-id"
+        assert data["message"] == "_error_msg_assignment_not_found:999"
 
     def test_mark_attendance(
         self,

@@ -178,11 +178,29 @@ class CanvasAsyncProxy:
             async with session.get(url, cookies=cookies) as response:
                 response.raise_for_status()
                 response_body = await response.json()
-                return [
+                students = [
                     student_dto.CanvasRead.model_validate(item)
                     for item in response_body
                     if is_student(canvas_course_id, item)
                 ]
+                return students
+
+    async def get_student_attendances(
+        self, canvas_course_id: int, student_ids: list[int], cookies: dict
+    ) -> list[student_dto.CanvasStudentSubmissions]:
+        url = f"{self._canvas_domain}/api/v1/courses/{canvas_course_id}/students/submissions?exclude_response_fields[]=preview_url&exclude_response_fields[]=external_tool_url&exclude_response_fields[]=url&grouped=1&response_fields[]=assignment_id&response_fields[]=attachments&response_fields[]=attempt&response_fields[]=cached_due_date&response_fields[]=custom_grade_status_id&response_fields[]=entered_grade&response_fields[]=entered_score&response_fields[]=excused&response_fields[]=grade&response_fields[]=grade_matches_current_submission&response_fields[]=grading_period_id&response_fields[]=id&response_fields[]=late&response_fields[]=late_policy_status&response_fields[]=missing&response_fields[]=points_deducted&response_fields[]=posted_at&response_fields[]=proxy_submitter&response_fields[]=proxy_submitter_id&response_fields[]=redo_request&response_fields[]=score&response_fields[]=seconds_late&response_fields[]=submission_type&response_fields[]=submitted_at&response_fields[]=user_id&response_fields[]=workflow_state&per_page=50"
+        for student_id in student_ids:
+            url += f"&student_ids[]={student_id}"
+        self._log.info("fetching from Canvas", url=url)
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, cookies=cookies) as response:
+                response.raise_for_status()
+                response_body = await response.json()
+                student_submissions = [
+                    student_dto.CanvasStudentSubmissions.model_validate(item)
+                    for item in response_body
+                ]
+                return student_submissions
 
     async def _get_assignment_secure_params(
         self,
