@@ -1,3 +1,4 @@
+from asgi_correlation_id import CorrelationIdMiddleware
 from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.engine.base import Engine
@@ -23,6 +24,7 @@ def create_web_application(
     Session.configure(bind=db_engine)
     app = FastAPI(lifespan=lifespan)
     app.add_middleware(LogsMiddleware)
+    app.add_middleware(CorrelationIdMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],

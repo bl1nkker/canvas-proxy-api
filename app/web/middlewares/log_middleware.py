@@ -14,10 +14,14 @@ class LogsMiddleware(BaseHTTPMiddleware):
         self, request: Request, call_next: RequestResponseEndpoint
     ) -> Response:
         try:
+            ip = request.client.host
             logger = structlog.getLogger(__name__)
             request_id = correlation_id.get()
             logger.debug(
-                "*** begin request ***", url=request.url, http_request_id=request_id
+                "*** begin request ***",
+                url=request.url,
+                http_request_id=request_id,
+                client_host=ip,
             )
             response = await call_next(request)
         except Exception as ex:
