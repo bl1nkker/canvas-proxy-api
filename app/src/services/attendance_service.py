@@ -66,7 +66,7 @@ class AttendanceService:
         with self._attendance_repo.session():
             query = self._attendance_repo.order_by(order_by=order_by, asc=asc)
             query = self._attendance_repo.filter_by_assignment_id(
-                assignment_id=assignment.id
+                assignment_id=assignment.id, query=query
             )
             attendances = self._attendance_repo.list_paged(
                 page=page, page_size=page_size, query=query
