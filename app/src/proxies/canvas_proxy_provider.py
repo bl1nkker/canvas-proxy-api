@@ -73,7 +73,7 @@ class CanvasProxyProvider:
         canvas_course_id: int,
         student_ids: list[int],
         cookies: auth_dto.CanvasAuthData,
-    ):
+    ) -> list[student_dto.CanvasStudentSubmissions]:
         return await self._proxy.get_student_attendances(
             canvas_course_id=canvas_course_id,
             student_ids=student_ids,

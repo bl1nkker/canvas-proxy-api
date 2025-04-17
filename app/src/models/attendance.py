@@ -12,9 +12,10 @@ from src.models.base import Base
 
 class Attendance(Base, DbModel, HasWebId):
     __tablename__ = "attendances"
+
     student_id = Column(Integer, ForeignKey("app.students.id"), nullable=False)
-    student = relationship("Student")
     assignment_id = Column(Integer, ForeignKey("app.assignments.id"), nullable=False)
+    student = relationship("Student")
     assignment = relationship("Assignment")
     status = Column(Enum(AttendanceStatus), nullable=False)
     value = Column(Enum(AttendanceValue), nullable=False)

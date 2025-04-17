@@ -45,6 +45,13 @@ class AttendanceService:
         if student is None:
             raise NotFoundError(f"_error_msg_student_not_found:{dto.student_id}")
         with self._attendance_repo.session():
+            existing_attendance = (
+                self._attendance_repo.get_by_student_and_assignment_id(
+                    student_id=student.id, assignment_id=assignment.id
+                )
+            )
+            if existing_attendance is not None:
+                return attendance_dto.Read.from_dbmodel(existing_attendance)
             attendance = Attendance(
                 web_id=shortuuid.uuid(),
                 student_id=student.id,
