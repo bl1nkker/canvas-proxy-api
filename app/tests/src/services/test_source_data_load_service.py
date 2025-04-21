@@ -279,7 +279,7 @@ class TestSourceDataLoadService(BaseTest):
         await source_data_load_service.load_data_from_canvas(user_id=user.id)
         with attendance_repo.session():
             atts = attendance_repo.list_all()
-            assert len(atts) == 4
+            assert len(atts) == 2
             for att in atts:
                 assert att.status == AttendanceStatus.COMPLETED
                 assert att.value is not None
@@ -326,7 +326,7 @@ class TestSourceDataLoadService(BaseTest):
         await source_data_load_service.load_data_from_canvas(user_id=user.id)
         with attendance_repo.session():
             atts = attendance_repo.list_all()
-            assert len(atts) == 4
+            assert len(atts) == 2
             for att in atts:
                 assert att.status == AttendanceStatus.COMPLETED
                 assert att.value is not None

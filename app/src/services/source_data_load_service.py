@@ -1,4 +1,5 @@
 import shortuuid
+import structlog
 
 from src.dto import canvas_assignment_dto, canvas_course_dto, student_dto
 from src.enums.attendance_status import AttendanceStatus
@@ -34,6 +35,7 @@ class SourceDataLoadService:
         attendance_repo: AttendanceRepo,
         canvas_proxy_provider_cls=CanvasProxyProvider,
     ):
+        self._log = structlog.getLogger(__name__)
         self._user_repo = user_repo
         self._enrollment_repo = enrollment_repo
         self._student_repo = student_repo
@@ -44,7 +46,7 @@ class SourceDataLoadService:
         self._attendance_repo = attendance_repo
         self._canvas_proxy_provider = canvas_proxy_provider_cls()
 
-    async def load_data_from_canvas(self, user_id: int):
+    async def load_data_from_canvas(self, user_id: int) -> bool:
         # Get user by id
         with self._canvas_user_repo.session():
             canvas_user = self._canvas_user_repo.get_by_user_id(user_id=user_id)
@@ -57,67 +59,105 @@ class SourceDataLoadService:
                 await self._canvas_proxy_provider.get_courses(auth_data)
             )
             for canvas_course in canvas_courses:
-                # Load courses from Canvas LMS -> Create Course
-                course = self._create_course(
-                    canvas_course=canvas_course, canvas_user=canvas_user
+                self._log.info(
+                    "begin retrieving course data",
+                    canvas_course_id=canvas_course.canvas_course_id,
                 )
-                canvas_students = await self._canvas_proxy_provider.get_course_students(
-                    canvas_course_id=course.canvas_course_id, cookies=auth_data
+                students, assignments, attendances = await self._load_course_data(
+                    canvas_course=canvas_course,
+                    canvas_user=canvas_user,
+                    auth_data=auth_data,
                 )
-                students = []
-                # For each course: Load students
-                for canvas_student in canvas_students:
-                    # Create Student
-                    student = self._create_student(canvas_student=canvas_student)
-                    students.append(student)
-                    # Create Enrollment
-                    self._create_enrollment(course=course, student=student)
+                self._log.info(
+                    "end retrieving course data",
+                    canvas_course_id=canvas_course.canvas_course_id,
+                    students=len(students),
+                    assignments=len(assignments),
+                    attendances=len(attendances),
+                )
+        return True
 
-                # For each course: Load attendance assignment group
-                canvas_assignment_group = (
-                    await self._canvas_proxy_provider.get_attendance_assignment_group(
-                        cookies=auth_data,
-                        canvas_course_id=course.canvas_course_id,
-                    )
+    async def _load_course_data(self, canvas_course, canvas_user, auth_data):
+        students = []
+        assignments = []
+        attendances = []
+        # Load courses from Canvas LMS -> Create Course
+        course = self._create_course(
+            canvas_course=canvas_course, canvas_user=canvas_user
+        )
+        canvas_students = await self._canvas_proxy_provider.get_course_students(
+            canvas_course_id=course.canvas_course_id, cookies=auth_data
+        )
+
+        # For each course: Load students
+        for canvas_student in canvas_students:
+            # Create Student
+            student = self._create_student(canvas_student=canvas_student)
+            students.append(student)
+            # Create Enrollment
+            self._create_enrollment(course=course, student=student)
+
+        # For each course: Load attendance assignment group
+        canvas_assignment_group = (
+            await self._canvas_proxy_provider.get_attendance_assignment_group(
+                cookies=auth_data,
+                canvas_course_id=course.canvas_course_id,
+            )
+        )
+        if canvas_assignment_group is not None:
+            # Create Attendance assignment group
+            assignment_group = self._create_assignment_group(
+                canvas_assignment_group=canvas_assignment_group, course=course
+            )
+            # Load student attendances from Canvas LMS
+            canvas_student_attendances = (
+                await self._canvas_proxy_provider.get_student_attendances(
+                    canvas_course_id=course.canvas_course_id,
+                    student_ids=[student.canvas_user_id for student in students],
+                    cookies=auth_data,
                 )
-                # Create Attendance assignment group
-                assignment_group = self._create_assignment_group(
-                    canvas_assignment_group=canvas_assignment_group, course=course
+            )
+            # For each of the assignments:
+            for canvas_assignment in canvas_assignment_group.assignments:
+                # Create Assignment
+                assignment = self._create_assignment(
+                    canvas_assignment=canvas_assignment,
+                    assignment_group=assignment_group,
                 )
-                # For each of the assignments:
-                for canvas_assignment in canvas_assignment_group.assignments:
-                    # Create Assignment
-                    assignment = self._create_assignment(
-                        canvas_assignment=canvas_assignment,
-                        assignment_group=assignment_group,
+                assignments.append(assignment)
+
+            # For each canvas student
+            for canvas_attendance in canvas_student_attendances:
+                student = next(
+                    (
+                        student
+                        for student in students
+                        if student.canvas_user_id == canvas_attendance.id
+                    ),
+                    None,
+                )
+                if student is None:
+                    continue
+                # For each student submission
+                for submission in canvas_attendance.submissions:
+                    assignment = next(
+                        (
+                            assignment
+                            for assignment in assignments
+                            if assignment.canvas_assignment_id
+                            == submission.assignment_id
+                        ),
+                        None,
                     )
-                    # Load attendances
-                    canvas_student_attendances = (
-                        await self._canvas_proxy_provider.get_student_attendances(
-                            canvas_course_id=course.canvas_course_id,
-                            student_ids=[
-                                student.canvas_user_id for student in students
-                            ],
-                            cookies=auth_data,
-                        )
+                    if assignment is None:
+                        continue
+                    attendance = self._create_attendance(
+                        submission=submission,
+                        assignment=assignment,
+                        student=student,
                     )
-                    for canvas_attendance in canvas_student_attendances:
-                        student = next(
-                            (
-                                student
-                                for student in students
-                                if student.canvas_user_id == canvas_attendance.id
-                            ),
-                            None,
-                        )
-                        if student is None:
-                            continue
-                        for submission in canvas_attendance.submissions:
-                            self._create_attendance(
-                                submission=submission,
-                                assignment=assignment,
-                                student=student,
-                            )
+                    attendances.append(attendance)
+        return students, assignments, attendances
 
     def _create_course(
         self, canvas_course: canvas_course_dto.Read, canvas_user: CanvasUser
