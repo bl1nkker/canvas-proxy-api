@@ -1,0 +1,54 @@
+version: "3"
+services:
+  api:
+    image: blinkker/canvas-proxy-api:0.1.1a18
+    command: api
+    ports:
+      - "8010:8000"
+      - "28888:8888"
+    environment:
+      DB_HOST: postgresql
+      DB_PORT: 5432
+    networks:
+      - shared_network
+
+  dbinit:
+    image: blinkker/canvas-proxy-api:0.1.1a18
+    command: dbinit
+    environment:
+      DB_HOST: postgresql
+      DB_PORT: 5432
+    networks:
+      - shared_network
+  worker:
+    image: blinkker/canvas-proxy-api:0.1.1a18
+    command: celery-worker
+    environment:
+      DB_HOST: postgresql
+      DB_PORT: 5432
+      REDIS_HOST: redis
+    networks:
+      - shared_network
+
+  load_worker:
+    image: blinkker/canvas-proxy-api:0.1.1a18
+    command: load-data-worker
+    environment:
+      DB_HOST: postgresql
+      DB_PORT: 5432
+      REDIS_HOST: redis
+    networks:
+      - shared_network
+  beat:
+    image: blinkker/canvas-proxy-api:0.1.1a18
+    command: celery-beat
+    environment:
+      DB_HOST: postgresql
+      DB_PORT: 5432
+      REDIS_HOST: redis
+    networks:
+      - shared_network
+
+networks:
+  shared_network:
+    external: true
