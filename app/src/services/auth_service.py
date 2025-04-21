@@ -65,15 +65,6 @@ class AuthService:
             auth_data,
         )
 
-    async def signin_signup(self, dto: auth_dto.LoginRequest):
-        with self._user_repo.session():
-            user = self._user_repo.get_by_username(username=dto.username)
-            if not user:
-                # Create user and canvas user
-                return await self.create_user(dto=dto)
-            else:
-                return await self.signin(dto=dto)
-
     def _create_user(self, dto: auth_dto.Signup) -> User:
         with self._user_repo.session():
             user = self._user_repo.get_by_username(username=dto.username)
