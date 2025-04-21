@@ -20,5 +20,9 @@ class DbModel:
         onupdate=func.now(),
     )
 
-    __table_args__ = {"schema": "app"}
+    __table_args__ = ({"schema": "app"},)
     __mapper_args__ = {"version_id_col": version_id}
+
+    @classmethod
+    def get_table_args(cls) -> dict:
+        return {"schema": "app"}
