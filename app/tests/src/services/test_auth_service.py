@@ -4,6 +4,7 @@ import pytest
 
 from src.dto import auth_dto
 from src.errors.types import InvalidCredentialsError, InvalidDataError
+from src.services.source_data_load_queue_service import SourceDataLoadQueueService
 from tests.base_test import BaseTest
 
 
@@ -132,8 +133,14 @@ class TestAuthService(BaseTest):
     @pytest.mark.asyncio
     @patch("aiohttp.ClientSession.get")
     @patch("aiohttp.ClientSession.post")
+    @patch.object(
+        SourceDataLoadQueueService,
+        "load_canvas_data",
+        return_value="job-id-1",
+    )
     async def test_create_user(
         self,
+        mock_job,
         mock_post,
         mock_get,
         canvas_ok_response,
@@ -198,10 +205,17 @@ class TestAuthService(BaseTest):
                 "log_session_id": "9f8187d804aaf1d15913",
             },
         )
+        mock_job.assert_called_once()
 
     @pytest.mark.asyncio
+    @patch.object(
+        SourceDataLoadQueueService,
+        "load_canvas_data",
+        return_value="job-id-1",
+    )
     async def test_create_user_should_raise_on_same_user(
         self,
+        mock_job,
         auth_service,
         create_canvas_user,
         cleanup_all,
@@ -214,3 +228,4 @@ class TestAuthService(BaseTest):
             exc.value.message
             == "_error_msg_user_with_username_already_exists:test@gmail.com"
         )
+        mock_job.assert_not_called()

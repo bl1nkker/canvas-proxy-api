@@ -4,6 +4,7 @@ from unittest.mock import patch
 import pytest
 
 from src.dto import auth_dto
+from src.services.source_data_load_queue_service import SourceDataLoadQueueService
 from tests.base_test import BaseTest
 from tests.fixtures import sample_data
 from tests.web.web_application_test import WebApplicationTest
@@ -86,8 +87,14 @@ class TestAuthRouter(BaseTest, WebApplicationTest):
     @pytest.mark.asyncio
     @patch("aiohttp.ClientSession.get")
     @patch("aiohttp.ClientSession.post")
+    @patch.object(
+        SourceDataLoadQueueService,
+        "load_canvas_data",
+        return_value="job-id-1",
+    )
     async def test_create_user(
         self,
+        mock_job,
         mock_post,
         mock_get,
         client,
@@ -114,9 +121,15 @@ class TestAuthRouter(BaseTest, WebApplicationTest):
         }
         assert cookies == sample_data.canvas_auth_data
 
+    @patch.object(
+        SourceDataLoadQueueService,
+        "load_canvas_data",
+        return_value="job-id-1",
+    )
     @pytest.mark.asyncio
     async def test_create_user_should_raise_on_same_user(
         self,
+        mock_job,
         client,
         canvas_ok_response,
         create_canvas_user,
