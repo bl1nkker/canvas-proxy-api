@@ -34,15 +34,17 @@ from src.services.attendance_service import AttendanceService
 from src.services.auth_service import AuthService
 from src.services.canvas_assignment_service import CanvasAssignmentService
 from src.services.canvas_course_service import CanvasCourseService
+from src.services.source_data_load_queue_service import SourceDataLoadQueueService
 from src.services.source_data_load_service import SourceDataLoadService
 from src.services.student_service import StudentService
 from src.services.upload_service import UploadService
 from tests.fixtures import sample_data
+from tests.fixtures.broker_fixtures import BrokerTest
 from tests.fixtures.db_fixtures import DbTest
 from tests.fixtures.file_fixtures import FileFixtures
 
 
-class BaseTest(DbTest, FileFixtures):
+class BaseTest(DbTest, FileFixtures, BrokerTest):
 
     @pytest.fixture
     def app_config(self) -> AppConfig:
@@ -97,8 +99,16 @@ class BaseTest(DbTest, FileFixtures):
         return StudentVectorRepo(db_session)
 
     @pytest.fixture
-    def auth_service(self, user_repo, canvas_user_repo):
-        return AuthService(user_repo=user_repo, canvas_user_repo=canvas_user_repo)
+    def source_data_load_queue_service(self, db_session, broker_client):
+        return SourceDataLoadQueueService(redis_client=broker_client)
+
+    @pytest.fixture
+    def auth_service(self, user_repo, canvas_user_repo, source_data_load_queue_service):
+        return AuthService(
+            user_repo=user_repo,
+            canvas_user_repo=canvas_user_repo,
+            source_data_load_queue_service=source_data_load_queue_service,
+        )
 
     @pytest.fixture
     def student_service(
