@@ -226,6 +226,11 @@ class SourceDataLoadService:
             )
             if existing_attendance is not None:
                 # ? Should we syncronize this?
+                # existing_attendance.value = submission.value
+                # existing_attendance.status = AttendanceStatus.COMPLETED
+                # existing_attendance = self._attendance_repo.save_or_update(
+                #     existing_attendance
+                # )
                 return existing_attendance
             attendance = Attendance(
                 web_id=shortuuid.uuid(),
