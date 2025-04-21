@@ -218,18 +218,22 @@ class SourceDataLoadService:
         student: Student,
         assignment: Assignment,
     ) -> Attendance:
-        existing_attendance = self._attendance_repo.get_by_student_and_assignment_id(
-            student_id=student.id, assignment_id=assignment.id
-        )
-        if existing_attendance is not None:
-            return existing_attendance
-        attendance = Attendance(
-            web_id=shortuuid.uuid(),
-            student_id=student.id,
-            assignment_id=assignment.id,
-            status=AttendanceStatus.COMPLETED,
-            value=submission.value,
-            failed=False,
-        )
-        attendance = self._attendance_repo.save_or_update(attendance)
-        return attendance
+        with self._attendance_repo.session():
+            existing_attendance = (
+                self._attendance_repo.get_by_student_and_assignment_id(
+                    student_id=student.id, assignment_id=assignment.id
+                )
+            )
+            if existing_attendance is not None:
+                # ? Should we syncronize this?
+                return existing_attendance
+            attendance = Attendance(
+                web_id=shortuuid.uuid(),
+                student_id=student.id,
+                assignment_id=assignment.id,
+                status=AttendanceStatus.COMPLETED,
+                value=submission.value,
+                failed=False,
+            )
+            attendance = self._attendance_repo.save_or_update(attendance)
+            return attendance
