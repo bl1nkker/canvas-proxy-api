@@ -1,7 +1,3 @@
-from unittest.mock import patch
-
-import pytest
-
 from tests.base_test import BaseTest
 from tests.fixtures import sample_data
 from tests.web.web_application_test import WebApplicationTest
@@ -65,26 +61,6 @@ class TestCanvasCourseRouter(BaseTest, WebApplicationTest):
         assert data["total"] == 2
         for course in data["items"]:
             assert course["owner_username"] == canvas_user.username
-
-    @pytest.mark.asyncio
-    @patch("aiohttp.ClientSession.get")
-    async def test_load_courses(
-        self,
-        mock_get,
-        client,
-        canvas_course_ok_response,
-        create_canvas_user,
-        cleanup_all,
-    ):
-        mock_get.return_value = canvas_course_ok_response
-        canvas_user = create_canvas_user()
-        response = client.post(
-            f"/api/canvas-courses/v1/load/users/{canvas_user.web_id}",
-            cookies=sample_data.canvas_auth_data,
-        )
-        assert response.status_code == 201
-        data = response.json()
-        assert len(data) == 2
 
     def test_get_course_enrollments(
         self,

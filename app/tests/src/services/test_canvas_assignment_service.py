@@ -30,16 +30,6 @@ class TestCanvasAssignmentService(BaseTest):
         return mock_response
 
     @pytest.fixture
-    def canvas_assignment_groups_response(self):
-        mock_response = AsyncMock()
-        mock_response.__aenter__.return_value = mock_response
-        mock_response.__aexit__.return_value = None
-        mock_response.json.return_value = (
-            sample_data.canvas_get_assignment_groups_response
-        )
-        return mock_response
-
-    @pytest.fixture
     def canvas_assignment_groups_empty_response(self):
         mock_response = AsyncMock()
         mock_response.__aenter__.return_value = mock_response

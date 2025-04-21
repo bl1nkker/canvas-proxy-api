@@ -1,6 +1,14 @@
 from typing import Optional
 
-from sqlalchemy import JSON, Boolean, Column, Enum, ForeignKey, Integer
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    Enum,
+    ForeignKey,
+    Integer,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import relationship
 
 from db import DbModel, HasWebId
@@ -12,9 +20,14 @@ from src.models.base import Base
 
 class Attendance(Base, DbModel, HasWebId):
     __tablename__ = "attendances"
+    __table_args__ = (
+        UniqueConstraint("student_id", "assignment_id", name="_student_assignment_uc"),
+        DbModel.get_table_args(),
+    )
+
     student_id = Column(Integer, ForeignKey("app.students.id"), nullable=False)
-    student = relationship("Student")
     assignment_id = Column(Integer, ForeignKey("app.assignments.id"), nullable=False)
+    student = relationship("Student")
     assignment = relationship("Assignment")
     status = Column(Enum(AttendanceStatus), nullable=False)
     value = Column(Enum(AttendanceValue), nullable=False)

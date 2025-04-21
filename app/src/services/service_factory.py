@@ -14,6 +14,8 @@ from src.services.attendance_service import AttendanceService
 from src.services.auth_service import AuthService
 from src.services.canvas_assignment_service import CanvasAssignmentService
 from src.services.canvas_course_service import CanvasCourseService
+from src.services.source_data_load_queue_service import SourceDataLoadQueueService
+from src.services.source_data_load_service import SourceDataLoadService
 from src.services.student_service import StudentService
 from src.services.upload_service import UploadService
 
@@ -68,10 +70,13 @@ class ServiceFactory:
             enrollment_repo=self.enrollment_repo(db_session=db_session),
         )
 
-    def auth_service(self, db_session):
+    def auth_service(self, db_session, redis_client):
         return AuthService(
             canvas_user_repo=self.canvas_user_repo(db_session),
             user_repo=self.user_repo(db_session),
+            source_data_load_queue_service=SourceDataLoadQueueService(
+                redis_client=redis_client
+            ),
         )
 
     def canvas_course_service(self, db_session):
@@ -103,6 +108,18 @@ class ServiceFactory:
             auth_service=self.auth_service(db_session=db_session),
             canvas_course_repo=self.canvas_course_repo(db_session=db_session),
             student_repo=self.student_repo(db_session=db_session),
+        )
+
+    def source_data_load_service(self, db_session):
+        return SourceDataLoadService(
+            user_repo=self.user_repo(db_session),
+            enrollment_repo=self.enrollment_repo(db_session),
+            student_repo=self.student_repo(db_session),
+            canvas_user_repo=self.canvas_user_repo(db_session),
+            canvas_course_repo=self.canvas_course_repo(db_session),
+            assignment_group_repo=self.assignment_group_repo(db_session),
+            assignment_repo=self.assignment_repo(db_session),
+            attendance_repo=self.attendance_repo(db_session),
         )
 
 

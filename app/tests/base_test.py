@@ -1,6 +1,6 @@
 import uuid
 from http.cookies import SimpleCookie
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 import shortuuid
@@ -34,14 +34,17 @@ from src.services.attendance_service import AttendanceService
 from src.services.auth_service import AuthService
 from src.services.canvas_assignment_service import CanvasAssignmentService
 from src.services.canvas_course_service import CanvasCourseService
+from src.services.source_data_load_queue_service import SourceDataLoadQueueService
+from src.services.source_data_load_service import SourceDataLoadService
 from src.services.student_service import StudentService
 from src.services.upload_service import UploadService
 from tests.fixtures import sample_data
+from tests.fixtures.broker_fixtures import BrokerTest
 from tests.fixtures.db_fixtures import DbTest
 from tests.fixtures.file_fixtures import FileFixtures
 
 
-class BaseTest(DbTest, FileFixtures):
+class BaseTest(DbTest, FileFixtures, BrokerTest):
 
     @pytest.fixture
     def app_config(self) -> AppConfig:
@@ -96,8 +99,16 @@ class BaseTest(DbTest, FileFixtures):
         return StudentVectorRepo(db_session)
 
     @pytest.fixture
-    def auth_service(self, user_repo, canvas_user_repo):
-        return AuthService(user_repo=user_repo, canvas_user_repo=canvas_user_repo)
+    def source_data_load_queue_service(self, db_session, broker_client):
+        return SourceDataLoadQueueService(redis_client=broker_client)
+
+    @pytest.fixture
+    def auth_service(self, user_repo, canvas_user_repo, source_data_load_queue_service):
+        return AuthService(
+            user_repo=user_repo,
+            canvas_user_repo=canvas_user_repo,
+            source_data_load_queue_service=source_data_load_queue_service,
+        )
 
     @pytest.fixture
     def student_service(
@@ -114,6 +125,29 @@ class BaseTest(DbTest, FileFixtures):
             canvas_course_repo=canvas_course_repo,
             student_vector_repo=student_vector_repo,
             upload_service=upload_service,
+        )
+
+    @pytest.fixture
+    def source_data_load_service(
+        self,
+        user_repo,
+        canvas_user_repo,
+        canvas_course_repo,
+        student_repo,
+        enrollment_repo,
+        assignment_group_repo,
+        assignment_repo,
+        attendance_repo,
+    ):
+        return SourceDataLoadService(
+            user_repo=user_repo,
+            enrollment_repo=enrollment_repo,
+            student_repo=student_repo,
+            canvas_user_repo=canvas_user_repo,
+            canvas_course_repo=canvas_course_repo,
+            assignment_group_repo=assignment_group_repo,
+            assignment_repo=assignment_repo,
+            attendance_repo=attendance_repo,
         )
 
     @pytest.fixture
@@ -217,7 +251,7 @@ class BaseTest(DbTest, FileFixtures):
             for mdl in models:
                 session.query(mdl).delete()
                 stmt = text(
-                    f"ALTER SEQUENCE {mdl.__table_args__['schema']}.{mdl.__tablename__}_id_seq RESTART WITH 1"
+                    f"ALTER SEQUENCE app.{mdl.__tablename__}_id_seq RESTART WITH 1"
                 )
                 session.execute(stmt)
 
@@ -246,8 +280,10 @@ class BaseTest(DbTest, FileFixtures):
             username="test@gmail.com",
             password="test-pwd",
             canvas_id="canvas-id-1",
+            user=None,
         ):
-            user = create_user(username=username, password=password)
+            if user is None:
+                user = create_user(username=username, password=password)
             canvas_user = CanvasUser(
                 user_id=user.id,
                 canvas_id=canvas_id,
@@ -264,10 +300,11 @@ class BaseTest(DbTest, FileFixtures):
         def _gen(
             username="test@gmail.com",
             password="test-pwd",
+            user=None,
             canvas_id=1,
         ):
             user = sample_canvas_user(
-                username=username, password=password, canvas_id=canvas_id
+                username=username, password=password, canvas_id=canvas_id, user=user
             )
             with canvas_user_repo.session():
                 user = canvas_user_repo.save_or_update(user)
@@ -474,6 +511,44 @@ class BaseTest(DbTest, FileFixtures):
         return _gen
 
     @pytest.fixture
+    def mock_aiohttp_get(
+        self,
+        canvas_ok_response,
+        canvas_course_ok_response,
+        canvas_get_students_ok_response,
+        canvas_assignment_groups_response,
+        canvas_get_student_attendances_ok_response,
+    ):
+        def mocked_get(url, *args, **kwargs):
+            if "/login/canvas" in url:
+                return canvas_ok_response
+            elif "/dashboard/dashboard_cards" in url:
+                return canvas_course_ok_response
+            elif "/users?include_inactive=true" in url:
+                return canvas_get_students_ok_response
+            elif "/assignment_groups" in url:
+                return canvas_assignment_groups_response
+            elif "/students/submissions" in url:
+                return canvas_get_student_attendances_ok_response
+            else:
+                raise NotImplementedError
+
+        with patch("aiohttp.ClientSession.get", side_effect=mocked_get) as mock:
+            yield mock
+
+    @pytest.fixture
+    def mock_aiohttp_post(self, canvas_ok_response):
+
+        def mocked_post(url, *args, **kwargs):
+            if "/login/canvas" in url:
+                return canvas_ok_response
+            else:
+                raise NotImplementedError
+
+        with patch("aiohttp.ClientSession.post", side_effect=mocked_post) as mock:
+            yield mock
+
+    @pytest.fixture
     def canvas_ok_response(self):
         mock_response = AsyncMock()
         mock_response.__aenter__.return_value = mock_response
@@ -515,4 +590,14 @@ class BaseTest(DbTest, FileFixtures):
             sample_data.canvas_get_student_attendances_response
         )
 
+        return mock_response
+
+    @pytest.fixture
+    def canvas_assignment_groups_response(self):
+        mock_response = AsyncMock()
+        mock_response.__aenter__.return_value = mock_response
+        mock_response.__aexit__.return_value = None
+        mock_response.json.return_value = (
+            sample_data.canvas_get_assignment_groups_response
+        )
         return mock_response

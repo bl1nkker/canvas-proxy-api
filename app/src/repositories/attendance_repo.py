@@ -10,11 +10,21 @@ class AttendanceRepo(DataRepo[Attendance]):
 
     def filter_by_assignment_id(self, assignment_id: int, query=None):
         query = query or self.query()
-        return query.filter(Attendance.assignment_id == assignment_id)
+        return query.filter(self._type.assignment_id == assignment_id)
 
     def get_by_student_id(self, student_id: int, query=None):
         query = query or self.query()
-        return query.filter(Attendance.student_id == student_id).first()
+        return query.filter(self._type.student_id == student_id).first()
+
+    def get_by_student_and_assignment_id(
+        self, student_id: int, assignment_id: int, query=None
+    ):
+        query = query or self.query()
+        return (
+            query.filter(self._type.student_id == student_id)
+            .filter(self._type.assignment_id == assignment_id)
+            .first()
+        )
 
     def get_by_web_id(self, web_id: str, query=None):
         query = query or self.query()

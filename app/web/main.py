@@ -3,6 +3,7 @@ from sqlalchemy.engine import create_engine
 from db.config import get_db_config
 from log import configure_logging
 from web.routers import (
+    admin_router,
     attendance_router,
     auth_router,
     canvas_course_router,
@@ -23,6 +24,7 @@ def create_app():
     app.include_router(canvas_course_router.router)
     app.include_router(attendance_router.router)
     app.include_router(upload_router.router)
+    app.include_router(admin_router.router)
     return app
 
 

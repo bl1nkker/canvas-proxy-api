@@ -3,7 +3,7 @@ import io
 import shortuuid
 
 from db.data_repo import Pagination
-from src.dto import attendance_dto, auth_dto
+from src.dto import attendance_dto
 from src.enums.attendance_status import AttendanceStatus
 from src.enums.attendance_value import AttendanceValue
 from src.errors.types import NotFoundError
@@ -45,6 +45,13 @@ class AttendanceService:
         if student is None:
             raise NotFoundError(f"_error_msg_student_not_found:{dto.student_id}")
         with self._attendance_repo.session():
+            existing_attendance = (
+                self._attendance_repo.get_by_student_and_assignment_id(
+                    student_id=student.id, assignment_id=assignment.id
+                )
+            )
+            if existing_attendance is not None:
+                return attendance_dto.Read.from_dbmodel(existing_attendance)
             attendance = Attendance(
                 web_id=shortuuid.uuid(),
                 student_id=student.id,
@@ -126,55 +133,3 @@ class AttendanceService:
             attendance.value = AttendanceValue.COMPLETE
             self._attendance_repo.save_or_update(attendance)
             return attendance_dto.Read.from_dbmodel(attendance)
-
-    async def load_course_attendances_from_canvas(
-        self, dto: attendance_dto.Load, canvas_auth_data: auth_dto.CanvasAuthData
-    ):
-        with self._canvas_course_repo.session():
-            course = self._canvas_course_repo.get_by_db_id(db_id=dto.course_id)
-            if not course:
-                raise NotFoundError(f"_error_msg_course_not_found: {dto.course_id}")
-            # ! Not all students might be inside Canvas LMS!. This must be replaced with fetching students first
-            students = [enrollment.student for enrollment in course.enrollments]
-            canvas_student_attendances = (
-                await self._canvas_proxy_provider.get_student_attendances(
-                    canvas_course_id=course.canvas_course_id,
-                    student_ids=[student.canvas_user_id for student in students],
-                    cookies=canvas_auth_data,
-                )
-            )
-            for canvas_student in canvas_student_attendances:
-                student_id = next(
-                    (
-                        student.id
-                        for student in students
-                        if student.canvas_user_id == canvas_student.id
-                    ),
-                    None,
-                )
-                for submission in canvas_student.submissions:
-                    assignment = self._assignment_repo.get_by_canvas_assignment_id(
-                        submission.assignment_id
-                    )
-                    if not assignment:
-                        # TODO: Do smth with this
-                        continue
-
-                    query = self._attendance_repo.filter_by_assignment_id(
-                        assignment_id=assignment.id
-                    )
-                    attendance = self._attendance_repo.get_by_student_id(
-                        student_id=student_id, query=query
-                    )
-                    if not attendance:
-                        # Create attendance
-                        attendance = Attendance(
-                            web_id=shortuuid.uuid(),
-                            student_id=student_id,
-                            assignment_id=assignment.id,
-                            status=AttendanceStatus.COMPLETED,
-                            value=submission.value,
-                            failed=False,
-                        )
-                        self._attendance_repo.save_or_update(attendance)
-            return True

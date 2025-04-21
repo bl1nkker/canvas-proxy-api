@@ -6,6 +6,7 @@ from src.models import CanvasUser, User
 from src.proxies.canvas_proxy_provider import CanvasProxyProvider
 from src.repositories.canvas_user_repo import CanvasUserRepo
 from src.repositories.user_repo import UserRepo
+from src.services.source_data_load_queue_service import SourceDataLoadQueueService
 
 
 class AuthService:
@@ -13,10 +14,12 @@ class AuthService:
         self,
         user_repo: UserRepo,
         canvas_user_repo: CanvasUserRepo,
+        source_data_load_queue_service: SourceDataLoadQueueService,
         canvas_proxy_provider_cls=CanvasProxyProvider,
     ):
         self._user_repo = user_repo
         self._canvas_user_repo = canvas_user_repo
+        self._source_data_load_queue_service = source_data_load_queue_service
         self._canvas_proxy_provider = canvas_proxy_provider_cls()
 
     async def create_user(
@@ -36,6 +39,7 @@ class AuthService:
                 username=dto.username,
                 canvas_user_id=user.id,
             )
+            self._source_data_load_queue_service.load_canvas_data(user_id=user.id)
             return auth_dto.UserData.from_dbmodel(user), auth_data
 
     async def signin(
@@ -60,15 +64,6 @@ class AuthService:
             auth_dto.UserData.from_dbmodel(user),
             auth_data,
         )
-
-    async def signin_signup(self, dto: auth_dto.LoginRequest):
-        with self._user_repo.session():
-            user = self._user_repo.get_by_username(username=dto.username)
-            if not user:
-                # Create user and canvas user
-                return await self.create_user(dto=dto)
-            else:
-                return await self.signin(dto=dto)
 
     def _create_user(self, dto: auth_dto.Signup) -> User:
         with self._user_repo.session():

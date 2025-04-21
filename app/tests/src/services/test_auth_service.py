@@ -4,6 +4,7 @@ import pytest
 
 from src.dto import auth_dto
 from src.errors.types import InvalidCredentialsError, InvalidDataError
+from src.services.source_data_load_queue_service import SourceDataLoadQueueService
 from tests.base_test import BaseTest
 
 
@@ -104,36 +105,14 @@ class TestAuthService(BaseTest):
     @pytest.mark.asyncio
     @patch("aiohttp.ClientSession.get")
     @patch("aiohttp.ClientSession.post")
-    async def test_signin_signup_should_create_new_user_when_user_not_found(
-        self,
-        mock_post,
-        mock_get,
-        auth_service,
-        canvas_ok_response,
-        user_repo,
-        canvas_user_repo,
-        cleanup_all,
-    ):
-        mock_get.return_value = canvas_ok_response
-        mock_post.return_value = canvas_ok_response
-        dto = auth_dto.LoginRequest(username="test@gmail.com", password="test-pwd")
-        await auth_service.signin_signup(dto=dto)
-        with user_repo.session():
-            users = user_repo.list_all()
-            assert len(users) == 1
-            assert users[0].username == "test@gmail.com"
-            user_id = users[0].id
-        with canvas_user_repo.session():
-            canvas_users = canvas_user_repo.list_all()
-            assert len(canvas_users) == 1
-            assert canvas_users[0].canvas_id == "1"
-            assert canvas_users[0].user_id == user_id
-
-    @pytest.mark.asyncio
-    @patch("aiohttp.ClientSession.get")
-    @patch("aiohttp.ClientSession.post")
+    @patch.object(
+        SourceDataLoadQueueService,
+        "load_canvas_data",
+        return_value="job-id-1",
+    )
     async def test_create_user(
         self,
+        mock_job,
         mock_post,
         mock_get,
         canvas_ok_response,
@@ -198,10 +177,17 @@ class TestAuthService(BaseTest):
                 "log_session_id": "9f8187d804aaf1d15913",
             },
         )
+        mock_job.assert_called_once()
 
     @pytest.mark.asyncio
+    @patch.object(
+        SourceDataLoadQueueService,
+        "load_canvas_data",
+        return_value="job-id-1",
+    )
     async def test_create_user_should_raise_on_same_user(
         self,
+        mock_job,
         auth_service,
         create_canvas_user,
         cleanup_all,
@@ -214,3 +200,4 @@ class TestAuthService(BaseTest):
             exc.value.message
             == "_error_msg_user_with_username_already_exists:test@gmail.com"
         )
+        mock_job.assert_not_called()
