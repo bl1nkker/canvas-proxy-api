@@ -590,14 +590,14 @@ canvas_courses_data = [
         "shortName": "shortName1",
         "originalName": "originalName1",
         "courseCode": "courseCode1",
-        "id": "1",
+        "id": "2997",
     },
     {
         "longName": "longName2",
         "shortName": "shortName2",
         "originalName": "originalName2",
         "courseCode": "courseCode2",
-        "id": "2",
+        "id": "2998",
     },
 ]
 
