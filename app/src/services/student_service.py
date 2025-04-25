@@ -147,14 +147,19 @@ class StudentService:
             self._enrollment_repo.save_or_update(enrollment)
             return enrollment_dto.Read.from_dbmodel(enrollment)
 
-    def _read_students_from_file(self, file_path: str) -> list[student_dto.StudentFile]:
+    def _read_students_from_file(
+        self, file_path: str, is_old=True
+    ) -> list[student_dto.StudentFile]:
         df = pd.read_excel(file_path, dtype={"Canvas ID": "Int64"})
 
         def cast_field_to_ndarray(field):
             if isinstance(field, str):
                 try:
                     image_vector = field.strip("[]")
-                    image_vector = np.fromstring(image_vector, sep=",")
+                    sep = " "
+                    if not is_old:
+                        sep = ","
+                    image_vector = np.fromstring(image_vector, sep=sep)
                     return image_vector
                 except Exception as e:
                     raise e
@@ -238,7 +243,7 @@ class StudentService:
             name=name, content_type=content_type, stream=stream
         )
         students: list[student_dto.StudentFile] = self._read_students_from_file(
-            file_path=metadata.path
+            file_path=metadata.path, is_old=False
         )
         with self._student_repo.session():
             for file_student in students:
