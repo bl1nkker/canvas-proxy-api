@@ -11,3 +11,5 @@ class StudentVector(Base, DbModel, HasWebId):
     student_id = Column(BigInteger, ForeignKey("app.students.id"), nullable=False)
     student = relationship("Student", foreign_keys=[student_id])
     embedding = Column(Vector(192), nullable=False, unique=True)
+    embedding_512 = Column(Vector(512))
+    embedding_4096 = Column(Vector(4096))
