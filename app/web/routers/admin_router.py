@@ -35,39 +35,10 @@ async def load_canvas_data(
     )
 
 
-@router.post("/deepface/facenet512/search")
-async def get_facenet_search(
+@router.post("/face-recognition/search")
+async def search_by_image(
     service: Annotated[StudentService, Depends(get_service)],
     file: Annotated[UploadFile, File(...)],
 ):
-    dto = service.search_by_image(stream=file.file, model_name="Facenet512")
-    return JSONResponse(status_code=status.HTTP_200_OK, content=jsonable_encoder(dto))
-
-
-@router.post("/deepface/facenet-mobile/search")
-async def get_facenet_mobile_search(
-    service: Annotated[StudentService, Depends(get_service)],
-    file: Annotated[UploadFile, File(...)],
-):
-    dto = service.search_by_image(stream=file.file, model_name="Mobile")
-    return JSONResponse(status_code=status.HTTP_200_OK, content=jsonable_encoder(dto))
-
-
-@router.post("/deepface/vgg-face/search")
-async def get_vgg_face_search(
-    service: Annotated[StudentService, Depends(get_service)],
-    file: Annotated[UploadFile, File(...)],
-):
-    dto = service.search_by_image(stream=file.file, model_name="VGG-Face")
-    return JSONResponse(status_code=status.HTTP_200_OK, content=jsonable_encoder(dto))
-
-
-@router.post("/deepface/upload")
-async def upload_vectors(
-    service: Annotated[StudentService, Depends(get_service)],
-    file: Annotated[UploadFile, File(...)],
-):
-    dto = service.load_vectors(
-        name=file.filename, content_type=file.content_type, stream=file.file
-    )
+    dto = service.search_by_image(stream=file.file)
     return JSONResponse(status_code=status.HTTP_200_OK, content=jsonable_encoder(dto))
