@@ -13,18 +13,26 @@ class StudentVectorRepo(DataRepo[StudentVector]):
         return query.filter(self._type.student_id == student_id).first()
 
     def search_course_students_by_embedding(
-        self, embedding: np.ndarray, student_ids: list[int], query=None
+        self,
+        embedding: np.ndarray,
+        student_ids: list[int],
+        threshold: float = 0.3,
+        query=None,
     ):
         query = query or self.query()
         return (
             query.filter(self._type.student_id.in_(student_ids))
-            .order_by(self._type.embedding.l2_distance(embedding))
-            .limit(1)
+            .filter(self._type.embedding.cosine_distance(embedding) < threshold)
+            .order_by(self._type.embedding.cosine_distance(embedding))
             .first()
         )
 
-    def search_by_embedding(self, embedding: np.ndarray, query=None):
+    def search_by_embedding(
+        self, embedding: np.ndarray, threshold: float = 0.3, query=None
+    ):
         query = query or self.query()
         return (
-            query.order_by(self._type.embedding.l2_distance(embedding)).limit(1).first()
+            query.filter(self._type.embedding.cosine_distance(embedding) < threshold)
+            .order_by(self._type.embedding.cosine_distance(embedding))
+            .first()
         )
