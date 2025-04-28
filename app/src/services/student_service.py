@@ -5,7 +5,7 @@ import pandas as pd
 import shortuuid
 
 from db.data_repo import Pagination
-from ml.service import MlService
+from ml.service import MlService, RepresentResult
 from src.dto import enrollment_dto, student_dto
 from src.errors.types import InvalidDataError, NotFoundError
 from src.errors.utils import write_to_temp_file
@@ -113,11 +113,10 @@ class StudentService:
             # because of this this method always returns enrolled student
             enrollments = self._enrollment_repo.list_all(query=query)
             student_ids = [enrollment.student_id for enrollment in enrollments]
-        with write_to_temp_file(stream=stream) as file_path:
-            image_embed = self._ml_service.represent_mobile(image_path=file_path)
         with self._student_vector_repo.session():
+            result = self._get_image_embedding(stream=stream)
             image = self._student_vector_repo.search_course_students_by_embedding(
-                embedding=image_embed, student_ids=student_ids
+                embedding=result.embedding, student_ids=student_ids
             )
             if not image:
                 raise NotFoundError(message="_error_msg_student_not_found")
@@ -190,32 +189,46 @@ class StudentService:
         )
         with self._student_repo.session():
             for file_student in students:
-                student = Student(
-                    web_id=shortuuid.uuid(),
-                    name=file_student.canvas_name,
-                    email=file_student.canvas_login,
-                    canvas_user_id=file_student.canvas_id,
+                student = self._student_repo.get_by_canvas_user_id(
+                    canvas_user_id=file_student.canvas_id
                 )
-                self._student_repo.save_or_update(student)
-                vector = StudentVector(
-                    student_id=student.id,
-                    embedding=file_student.image_vector,
-                    web_id=shortuuid.uuid(),
+                if not student:
+                    student = Student(
+                        web_id=shortuuid.uuid(),
+                        name=file_student.canvas_name,
+                        email=file_student.canvas_login,
+                        canvas_user_id=file_student.canvas_id,
+                    )
+                    self._student_repo.save_or_update(student)
+                vector = self._student_vector_repo.get_by_student_id(
+                    student_id=student.id
                 )
-                self._student_vector_repo.save_or_update(vector)
+                if not vector:
+                    vector = StudentVector(
+                        student_id=student.id,
+                        embedding=file_student.image_vector,
+                        web_id=shortuuid.uuid(),
+                    )
+                    self._student_vector_repo.save_or_update(vector)
+                else:
+                    vector.embedding = file_student.image_vector
+                    self._student_vector_repo.save_or_update(vector)
         return True
 
     def search_by_image(
         self,
         stream: io.BufferedReader,
     ) -> student_dto.Read:
-        with write_to_temp_file(stream=stream) as file_path:
-            preprocessed_path = self._ml_service.preprocess_image(file_path=file_path)
-            image_repr = self._ml_service.represent(image_path=preprocessed_path)
         with self._student_vector_repo.session():
+            result = self._get_image_embedding(stream=stream)
             image = self._student_vector_repo.search_by_embedding(
-                embedding=image_repr.embedding
+                embedding=result.embedding
             )
             if not image:
                 raise NotFoundError(message="_error_msg_student_not_found")
             return student_dto.Read.from_dbmodel(image.student)
+
+    def _get_image_embedding(self, stream) -> RepresentResult:
+        with write_to_temp_file(stream=stream) as file_path:
+            preprocessed_path = self._ml_service.preprocess_image(file_path=file_path)
+            return self._ml_service.represent(image_path=preprocessed_path)
