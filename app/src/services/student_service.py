@@ -210,7 +210,8 @@ class StudentService:
         stream: io.BufferedReader,
     ) -> student_dto.Read:
         with write_to_temp_file(stream=stream) as file_path:
-            image_repr = self._ml_service.represent(image_path=file_path)
+            preprocessed_path = self._ml_service.preprocess_image(file_path=file_path)
+            image_repr = self._ml_service.represent(image_path=preprocessed_path)
         with self._student_vector_repo.session():
             image = self._student_vector_repo.search_by_embedding(
                 embedding=image_repr.embedding
