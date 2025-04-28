@@ -19,7 +19,7 @@ class MlService:
     def preprocess_image(self, file_path: str, max_size: int = 800) -> str:
         with Image.open(file_path) as img:
             img.thumbnail((max_size, max_size))
-            img.save(file_path, format="JPEG", quality=85)
+            img.save(file_path, format="JPEG", quality=100)
         return file_path
 
     def represent(self, image_path: str) -> RepresentResult:
