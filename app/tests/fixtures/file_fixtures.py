@@ -32,7 +32,7 @@ class FileFixtures:
 
     @pytest.fixture
     def sample_jpg_file(self, fs_config):
-        with open(os.path.join(fs_config.test_data_path, "temir.jpg"), "rb") as file:
+        with open(os.path.join(fs_config.test_data_path, "test_jpg.jpg"), "rb") as file:
             yield file
 
     @pytest.fixture

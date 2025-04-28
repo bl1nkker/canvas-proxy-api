@@ -61,5 +61,3 @@ class StudentFile(BaseModel):
     canvas_login: str
     canvas_id: int
     image_vector: Optional[Any] = None
-    image_vector_512: Optional[Any] = None
-    image_vector_4096: Optional[Any] = None
