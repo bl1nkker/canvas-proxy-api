@@ -89,10 +89,58 @@ class TestStudendService(BaseTest):
         assert result is True
         with student_repo.session():
             students = student_repo.list_all()
-            assert len(students) == 5
+            assert len(students) == 4
             for student in students:
                 assert student.canvas_user_id is not None
 
         with student_vector_repo.session():
             vectors = student_vector_repo.list_all()
-            assert len(vectors) == 5
+            assert len(vectors) == 4
+
+    def test_load_students_from_excel_should_not_create_duplicate_students(
+        self,
+        student_service,
+        student_repo,
+        student_vector_repo,
+        students_file,
+        create_student,
+        cleanup_all,
+    ):
+        canvas_user_ids = [8348, 8349, 8350]
+        for cuid in canvas_user_ids:
+            student = create_student(canvas_user_id=cuid)
+        result = student_service.load_students_from_excel(
+            "test.csv", "text/csv", students_file
+        )
+        assert result is True
+        with student_repo.session():
+            students = student_repo.list_all()
+            assert len(students) == 4
+            for student in students:
+                assert student.canvas_user_id is not None
+
+        with student_vector_repo.session():
+            vectors = student_vector_repo.list_all()
+            assert len(vectors) == 4
+
+    def test_load_students_from_excel_should_overwrite_existing_vectors(
+        self,
+        student_service,
+        student_vector_repo,
+        students_file,
+        create_student,
+        create_student_vector,
+        cleanup_all,
+    ):
+        student = create_student(canvas_user_id=8348)
+        create_student_vector(student=student)
+        with student_vector_repo.session():
+            vector = student_vector_repo.get_by_student_id(student_id=student.id)
+            before_embedding = vector.embedding[:]
+        student_service.load_students_from_excel("test.csv", "text/csv", students_file)
+
+        with student_vector_repo.session():
+            vectors = student_vector_repo.list_all()
+            assert len(vectors) == 4
+            new_vector = student_vector_repo.get_by_student_id(student_id=student.id)
+            assert sorted(new_vector.embedding) != sorted(before_embedding)

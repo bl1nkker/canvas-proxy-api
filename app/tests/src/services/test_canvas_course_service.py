@@ -70,15 +70,15 @@ class TestCanvasCourseService(BaseTest):
     ):
         canvas_user = create_canvas_user(username="user")
         course = create_canvas_course(canvas_user=canvas_user)
-        for _ in range(3):
-            student = create_student()
+        for i in range(3):
+            student = create_student(canvas_user_id=i)
             create_enrollment(course=course, student=student)
         canvas_user = create_canvas_user(username="another-user", canvas_id=10)
         another_course = create_canvas_course(
             canvas_user=canvas_user, canvas_course_id=10
         )
-        for _ in range(5):
-            another_student = create_student()
+        for i in range(5):
+            another_student = create_student(canvas_user_id=i + 10)
             create_enrollment(course=another_course, student=another_student)
 
         enrollments = await canvas_course_service.get_course_enrollments(

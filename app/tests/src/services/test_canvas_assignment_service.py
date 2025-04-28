@@ -97,8 +97,8 @@ class TestCanvasAssignmentService(BaseTest):
         canvas_user = create_canvas_user(username="user")
         course = create_canvas_course(canvas_user=canvas_user)
         assignment_group = create_assignment_group(course=course, name="Test Group")
-        for _ in range(5):
-            student = create_student()
+        for i in range(5):
+            student = create_student(canvas_user_id=i)
             create_enrollment(course=course, student=student)
 
         canvas_auth_data = auth_dto.CanvasAuthData(**sample_data.canvas_auth_data)

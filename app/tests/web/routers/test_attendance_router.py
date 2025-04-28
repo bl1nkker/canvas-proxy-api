@@ -27,8 +27,8 @@ class TestAttendanceRouter(BaseTest, WebApplicationTest):
         assignment = create_assignment(
             assignment_group=assignment_group, name="sample assignment"
         )
-        for _ in range(5):
-            student = create_student()
+        for i in range(5):
+            student = create_student(canvas_user_id=i)
             create_attendance(student=student, assignment=assignment)
         response = client.get(
             f"/api/attendances/v1/?assignment_id={assignment.id}&page=1&page_size=100"

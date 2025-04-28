@@ -106,8 +106,8 @@ class TestAttendanceService(BaseTest):
         assignment = create_assignment(
             assignment_group=assignment_group, name="sample assignment"
         )
-        for _ in range(5):
-            student = create_student()
+        for i in range(5):
+            student = create_student(canvas_user_id=i)
             create_attendance(student=student, assignment=assignment)
         result = attendance_service.list_attendances_by_assignment(
             assignment_id=assignment.id

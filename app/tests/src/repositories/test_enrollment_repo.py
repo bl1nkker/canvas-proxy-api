@@ -55,12 +55,12 @@ class TestEnrollmentRepo(BaseTest):
         enrollment_repo,
         cleanup_all,
     ):
-        student = create_student()
+        student = create_student(canvas_user_id=1)
         canvas_user = create_canvas_user()
         course = create_canvas_course(canvas_user=canvas_user)
         enrollment = create_enrollment(course=course, student=student)
 
-        another_student = create_student()
+        another_student = create_student(canvas_user_id=2)
         another_course = create_canvas_course(
             canvas_user=canvas_user, canvas_course_id=5
         )
@@ -108,12 +108,12 @@ class TestEnrollmentRepo(BaseTest):
         enrollment_repo,
         cleanup_all,
     ):
-        student = create_student()
+        student = create_student(canvas_user_id=1)
         canvas_user = create_canvas_user()
         course = create_canvas_course(canvas_user=canvas_user)
         enrollment = create_enrollment(course=course, student=student)
         for i in range(5):
-            student = create_student()
+            student = create_student(canvas_user_id=i + 2)
             canvas_user = create_canvas_user(
                 username=f"{i}-user", canvas_id=f"{i + 10}"
             )

@@ -411,6 +411,28 @@ class BaseTest(DbTest, FileFixtures, BrokerTest):
         return _gen
 
     @pytest.fixture
+    def sample_student_vector(self, patch_shortuuid):
+        def _gen(student, embedding=[1.1] * 512):
+            student = StudentVector(
+                web_id=shortuuid.uuid(), student_id=student.id, embedding=embedding
+            )
+            return student
+
+        return _gen
+
+    @pytest.fixture
+    def create_student_vector(
+        self, sample_student_vector, student_vector_repo
+    ) -> CanvasCourse:
+        def _gen(student, embedding=[1.1] * 512):
+            vector = sample_student_vector(student=student, embedding=embedding)
+            with student_vector_repo.session():
+                vector = student_vector_repo.save_or_update(vector)
+            return vector
+
+        return _gen
+
+    @pytest.fixture
     def sample_attendance(self, patch_shortuuid):
         def _gen(
             student,
