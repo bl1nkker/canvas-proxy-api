@@ -202,7 +202,7 @@ class TestAttendanceRouter(BaseTest, WebApplicationTest):
             value=AttendanceValue.EXCUSE,
         )
         response = client.put(
-            "/api/attendances/v1/mark/search",
+            "/api/attendances/v1/search",
             data={"course_id": course.id, "assignment_id": assignment.id},
             files={"file": ("test.jpg", sample_jpg_file, "image/jpeg")},
         )
@@ -212,8 +212,8 @@ class TestAttendanceRouter(BaseTest, WebApplicationTest):
         assert data == {
             "web_id": "web-id-7",
             "assignment_id": 1,
-            "status": "INITIATED",
-            "value": "complete",
+            "status": "COMPLETED",
+            "value": "excuse",
             "student": {
                 "id": 1,
                 "web_id": "web-id-6",
