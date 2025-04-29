@@ -85,13 +85,17 @@ class StudentService:
             student = self._student_repo.get_by_web_id(web_id=web_id)
         if not student:
             raise NotFoundError(message=f"_error_msg_student_not_found: {web_id}")
-        metadata = self._upload_service.create_upload(
+        upload = self._upload_service.create_upload(
             name=name, content_type=content_type, stream=stream
         )
-        image_embed = self._ml_service.represent_mobile(image_path=metadata.path)
+        # kinda _get_image_embedding
+        preprocessed_path = self._ml_service.preprocess_image(file_path=upload.path)
+        result = self._ml_service.represent(image_path=preprocessed_path)
         with self._student_vector_repo.session():
             vector = StudentVector(
-                student_id=student.id, embedding=image_embed, web_id=shortuuid.uuid()
+                student_id=student.id,
+                embedding=result.embedding,
+                web_id=shortuuid.uuid(),
             )
             self._student_vector_repo.save_or_update(vector)
         return student_dto.Read.from_dbmodel(student)
