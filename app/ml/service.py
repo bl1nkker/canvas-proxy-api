@@ -26,7 +26,8 @@ class MlService:
         result = DeepFace.represent(
             img_path=image_path,
             model_name=self.model_name,
-            enforce_detection=False,
+            enforce_detection=True,
+            max_faces=1,
         )
         return RepresentResult(
             embedding=result[0]["embedding"],
