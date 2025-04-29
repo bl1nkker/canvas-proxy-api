@@ -15,6 +15,7 @@ from src.errors.types import (
 )
 from web.errors.handler import generate_default_error_handler
 from web.middlewares.log_middleware import LogsMiddleware
+from web.middlewares.profiler_middleware import ProfilerMiddleware
 
 
 def create_web_application(
@@ -24,6 +25,7 @@ def create_web_application(
     Session.configure(bind=db_engine)
     app = FastAPI(lifespan=lifespan)
     app.add_middleware(LogsMiddleware)
+    app.add_middleware(ProfilerMiddleware)
     app.add_middleware(CorrelationIdMiddleware)
     app.add_middleware(
         CORSMiddleware,
