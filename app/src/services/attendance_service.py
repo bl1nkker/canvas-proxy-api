@@ -124,12 +124,9 @@ class AttendanceService:
                     web_id=shortuuid.uuid(),
                     student_id=student.id,
                     assignment_id=dto.assignment_id,
-                    status=AttendanceStatus.INITIATED,
-                    value=AttendanceValue.COMPLETE,
+                    status=AttendanceStatus.COMPLETED,
+                    value=AttendanceValue.INCOMPLETE,
                     failed=False,
                 )
-            # Set attendance status to COMPLETE
-            attendance.status = AttendanceStatus.INITIATED
-            attendance.value = AttendanceValue.COMPLETE
-            self._attendance_repo.save_or_update(attendance)
+                self._attendance_repo.save_or_update(attendance)
             return attendance_dto.Read.from_dbmodel(attendance)

@@ -212,8 +212,8 @@ class TestAttendanceRouter(BaseTest, WebApplicationTest):
         assert data == {
             "web_id": "web-id-7",
             "assignment_id": 1,
-            "status": "INITIATED",
-            "value": "complete",
+            "status": "COMPLETED",
+            "value": "excuse",
             "student": {
                 "id": 1,
                 "web_id": "web-id-6",

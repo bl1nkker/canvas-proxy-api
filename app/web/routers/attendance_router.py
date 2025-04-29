@@ -44,7 +44,7 @@ def mark_attendance(
     )
 
 
-@router.put("/mark/search")
+@router.put("/search")
 def search_and_mark_attendance_by_student_image(
     file: Annotated[UploadFile, File(...)],
     course_id: Annotated[int, Form(...)],
