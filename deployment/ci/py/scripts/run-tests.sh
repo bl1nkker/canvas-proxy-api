@@ -15,7 +15,7 @@ source ./deployment/ci/py/scripts/common-init.sh
 
 pushd app
 
-poetry install --no-root --with tests,linter
+poetry install --no-root --with tests,linter,profiler
 ruff check .
 
 export PYTHON_ENV=test
