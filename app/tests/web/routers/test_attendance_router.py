@@ -202,7 +202,7 @@ class TestAttendanceRouter(BaseTest, WebApplicationTest):
             value=AttendanceValue.EXCUSE,
         )
         response = client.put(
-            "/api/attendances/v1/mark/search",
+            "/api/attendances/v1/search",
             data={"course_id": course.id, "assignment_id": assignment.id},
             files={"file": ("test.jpg", sample_jpg_file, "image/jpeg")},
         )
