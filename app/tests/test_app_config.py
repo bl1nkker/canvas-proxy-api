@@ -8,4 +8,5 @@ class TestAppConfig:
             canvas_domain="https://canvas.narxoz.kz",
             encryption_key="Z8qWK_Ce5OOBuISsa2j35UMf6z_a7jkwI3VTAXQj31g=",
             secure_key="a8qWK_Ce5OOBuISsa2j35UMf6z_a7jkwI3VTAXQj31g=",
+            profiling_enabled=False,
         )

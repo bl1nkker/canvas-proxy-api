@@ -1,14 +1,16 @@
+from pathlib import Path
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, UploadFile, status
 from fastapi.encoders import jsonable_encoder
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from sqlalchemy.orm import Session
 
 from db.get_db_session import get_db_session
 from src.services.service_factory import service_factory
 from src.services.source_data_load_service import SourceDataLoadService
 from src.services.student_service import StudentService
+from web.hooks.profiler_params import profiler_params
 
 router = APIRouter(prefix="/internal/admin/v1", tags=["Admin"])
 
@@ -37,8 +39,17 @@ async def load_canvas_data(
 
 @router.post("/face-recognition/search")
 async def search_by_image(
+    profiler_params: Annotated[dict, Depends(profiler_params)],
     service: Annotated[StudentService, Depends(get_service)],
     file: Annotated[UploadFile, File(...)],
 ):
     dto = service.search_by_image(stream=file.file)
     return JSONResponse(status_code=status.HTTP_200_OK, content=jsonable_encoder(dto))
+
+
+@router.get("/profile")
+def get_profile():
+    file_path = Path("_profiles/profile.html")
+    if file_path.exists():
+        return FileResponse(file_path, media_type="text/html")
+    return {"error": "Profile not found"}

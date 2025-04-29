@@ -1,3 +1,5 @@
 .coverage
 celerybeat-schedule
 dist/
+profile.html
+profile.speedscope.json

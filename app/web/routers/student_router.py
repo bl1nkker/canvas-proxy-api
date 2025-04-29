@@ -9,6 +9,7 @@ from db.get_db_session import get_db_session
 from src.dto import student_dto
 from src.services.service_factory import service_factory
 from src.services.student_service import StudentService
+from web.hooks.profiler_params import profiler_params
 
 router = APIRouter(prefix="/api/students/v1", tags=["Students"])
 
@@ -97,6 +98,7 @@ async def save_student_image(
 )
 async def search_student_by_image(
     course_web_id: str,
+    profiler_params: Annotated[dict, Depends(profiler_params)],
     service: Annotated[StudentService, Depends(get_service)],
     file: Annotated[UploadFile, File(...)],
 ):
