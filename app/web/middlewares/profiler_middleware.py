@@ -33,6 +33,5 @@ class ProfilerMiddleware(BaseHTTPMiddleware):
                 with open(f"_profiles/profile.{extension}", "w") as out:
                     out.write(profiler.output(renderer=renderer))
                 return response
-            else:
-                return await call_next(request)
-            # curl -X 'GET' 'http://127.0.0.1:8000/api/canvas-courses/v1/?page=1&page_size=10&order_by=id&asc=true&profile=true&profile_format=html' -H 'accept: application/json'
+        else:
+            return await call_next(request)
