@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from db.get_db_session import get_db_session
 from src.dto import auth_dto, canvas_course_dto
-from src.services.canvas_assignment_service import CanvasAssignmentService
+from src.services.assignment_service import AssignmentService
 from src.services.canvas_course_service import CanvasCourseService
 from src.services.service_factory import service_factory
 from web.depends.get_canvas_cookies import get_canvas_auth_data
@@ -21,7 +21,7 @@ def get_service(db_session: Annotated[Session, Depends(get_db_session)]):
 
 
 def get_assignment_service(db_session: Annotated[Session, Depends(get_db_session)]):
-    return service_factory().canvas_assignment_service(db_session=db_session)
+    return service_factory().assignment_service(db_session=db_session)
 
 
 @router.get("/")
@@ -40,7 +40,7 @@ async def list_courses(
 @router.get("/{web_id}/assignment-groups/attendance")
 async def get_attendance_assignment_group(
     web_id: str,
-    service: Annotated[CanvasAssignmentService, Depends(get_assignment_service)],
+    service: Annotated[AssignmentService, Depends(get_assignment_service)],
     auth_data: Annotated[auth_dto.CanvasAuthData, Depends(get_canvas_auth_data)],
 ):
     result = await service.get_attendance_assignment_group(
@@ -48,23 +48,6 @@ async def get_attendance_assignment_group(
     )
     return JSONResponse(
         status_code=status.HTTP_200_OK, content=jsonable_encoder(result)
-    )
-
-
-@router.post("/{web_id}/assignment-groups/{assignment_group_web_id}/assignments")
-async def create_assignment(
-    web_id: str,
-    assignment_group_web_id: str,
-    service: Annotated[CanvasAssignmentService, Depends(get_assignment_service)],
-    auth_data: Annotated[auth_dto.CanvasAuthData, Depends(get_canvas_auth_data)],
-):
-    result = await service.create_assignment(
-        web_id=web_id,
-        assignment_group_web_id=assignment_group_web_id,
-        canvas_auth_data=auth_data,
-    )
-    return JSONResponse(
-        status_code=status.HTTP_201_CREATED, content=jsonable_encoder(result)
     )
 
 
