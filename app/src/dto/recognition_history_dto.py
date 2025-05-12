@@ -5,6 +5,11 @@ from pydantic import BaseModel
 from src.dto import file_record_dto
 
 
+class FilterParams(BaseModel):
+    student_id: Optional[int] = None
+    assignment_id: Optional[int] = None
+
+
 class RecognitionDetails(BaseModel):
     duration: float
 
