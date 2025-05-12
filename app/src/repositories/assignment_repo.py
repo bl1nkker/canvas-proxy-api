@@ -16,3 +16,7 @@ class AssignmentRepo(DataRepo[Assignment]):
         return query.filter(
             self._type.canvas_assignment_id == canvas_assignment_id
         ).first()
+
+    def filter_by_assignment_group_id(self, assignment_group_id: int, query=None):
+        query = query or self.query()
+        return query.filter(self._type.assignment_group_id == assignment_group_id)

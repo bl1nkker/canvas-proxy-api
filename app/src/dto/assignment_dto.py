@@ -1,4 +1,15 @@
+from typing import Optional
+
 from pydantic import BaseModel, Field
+
+
+class Create(BaseModel):
+    course_id: int
+    assignment_group_id: int
+
+
+class FilterParams(BaseModel):
+    assignment_group_id: Optional[int] = None
 
 
 class AssignmentGroupBase(BaseModel):
@@ -27,6 +38,10 @@ class Read(BaseModel):
             assignment_group_id=item.assignment_group_id,
             canvas_assignment_id=item.canvas_assignment_id,
         )
+
+
+class ListRead(Read):
+    pass
 
 
 class AssignmentGroupRead(AssignmentGroupBase):

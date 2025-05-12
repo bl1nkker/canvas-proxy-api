@@ -4,6 +4,7 @@ from db.config import get_db_config
 from log import configure_logging
 from web.routers import (
     admin_router,
+    assignment_router,
     attendance_router,
     auth_router,
     canvas_course_router,
@@ -23,6 +24,7 @@ def create_app():
     app.include_router(student_router.router)
     app.include_router(canvas_course_router.router)
     app.include_router(attendance_router.router)
+    app.include_router(assignment_router.router)
     app.include_router(upload_router.router)
     app.include_router(admin_router.router)
     return app

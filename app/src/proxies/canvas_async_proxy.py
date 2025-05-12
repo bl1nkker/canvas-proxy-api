@@ -5,9 +5,9 @@ import aiohttp
 import structlog
 
 from src.dto import (
+    assignment_dto,
     attendance_dto,
     auth_dto,
-    canvas_assignment_dto,
     canvas_course_dto,
     student_dto,
 )
@@ -85,7 +85,7 @@ class CanvasAsyncProxy:
         self,
         cookies: dict,
         canvas_course_id: int,
-    ) -> canvas_assignment_dto.AssignmentGroupCanvas:
+    ) -> assignment_dto.AssignmentGroupCanvas:
         url = (
             f"{self._canvas_domain}/api/v1/courses/{canvas_course_id}/assignment_groups"
         )
@@ -102,11 +102,7 @@ class CanvasAsyncProxy:
                 response_body = await response.json()
                 for item in response_body:
                     if item["name"] == self.ATTENDANCE_GROUP_NAME:
-                        return (
-                            canvas_assignment_dto.AssignmentGroupCanvas.model_validate(
-                                item
-                            )
-                        )
+                        return assignment_dto.AssignmentGroupCanvas.model_validate(item)
                 return None
 
     async def create_assignment(
@@ -114,7 +110,7 @@ class CanvasAsyncProxy:
         canvas_course_id: int,
         assignment_group_id: int,
         cookies: dict,
-    ) -> canvas_assignment_dto.Read:
+    ) -> assignment_dto.Read:
         async with aiohttp.ClientSession() as session:
             secure_params = await self._get_assignment_secure_params(
                 session=session,
@@ -225,7 +221,7 @@ class CanvasAsyncProxy:
         canvas_course_id: int,
         data: dict,
         cookies: auth_dto.CanvasAuthData,
-    ) -> canvas_assignment_dto.CanvasRead:
+    ) -> assignment_dto.CanvasRead:
         url = f"{self._canvas_domain}/api/v1/courses/{canvas_course_id}/assignments"
         self._log.info("fetching from Canvas", url=url)
         cookies = cookies or {}
@@ -235,7 +231,7 @@ class CanvasAsyncProxy:
         ) as response:
             response.raise_for_status()
             response_body = await response.json()
-            return canvas_assignment_dto.CanvasRead.model_validate(response_body)
+            return assignment_dto.CanvasRead.model_validate(response_body)
 
     async def _get_basic_cookies(
         self, session: aiohttp.ClientSession, cookies: dict = None

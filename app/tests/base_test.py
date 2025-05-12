@@ -29,10 +29,10 @@ from src.repositories.file_record_repo import FileRecordRepo
 from src.repositories.student_repo import StudentRepo
 from src.repositories.student_vector_repo import StudentVectorRepo
 from src.repositories.user_repo import UserRepo
+from src.services.assignment_service import AssignmentService
 from src.services.attendance_process_service import AttendanceProcessService
 from src.services.attendance_service import AttendanceService
 from src.services.auth_service import AuthService
-from src.services.canvas_assignment_service import CanvasAssignmentService
 from src.services.canvas_course_service import CanvasCourseService
 from src.services.source_data_load_queue_service import SourceDataLoadQueueService
 from src.services.source_data_load_service import SourceDataLoadService
@@ -191,14 +191,14 @@ class BaseTest(DbTest, FileFixtures, BrokerTest):
         )
 
     @pytest.fixture
-    def canvas_assignment_service(
+    def assignment_service(
         self,
         attendance_service,
         canvas_course_repo,
         assignment_repo,
         assignment_group_repo,
     ):
-        return CanvasAssignmentService(
+        return AssignmentService(
             assignment_group_repo=assignment_group_repo,
             attendance_service=attendance_service,
             canvas_course_repo=canvas_course_repo,
@@ -540,6 +540,7 @@ class BaseTest(DbTest, FileFixtures, BrokerTest):
         canvas_get_students_ok_response,
         canvas_assignment_groups_response,
         canvas_get_student_attendances_ok_response,
+        canvas_assignment_secure_params_response,
     ):
         def mocked_get(url, *args, **kwargs):
             if "/login/canvas" in url:
@@ -548,10 +549,12 @@ class BaseTest(DbTest, FileFixtures, BrokerTest):
                 return canvas_course_ok_response
             elif "/users?include_inactive=true" in url:
                 return canvas_get_students_ok_response
-            elif "/assignment_groups" in url:
-                return canvas_assignment_groups_response
             elif "/students/submissions" in url:
                 return canvas_get_student_attendances_ok_response
+            elif "/assignment_groups" in url:
+                return canvas_assignment_groups_response
+            elif "/assignments/new?" in url:
+                return canvas_assignment_secure_params_response
             else:
                 raise NotImplementedError
 
@@ -559,11 +562,13 @@ class BaseTest(DbTest, FileFixtures, BrokerTest):
             yield mock
 
     @pytest.fixture
-    def mock_aiohttp_post(self, canvas_ok_response):
+    def mock_aiohttp_post(self, canvas_ok_response, canvas_create_assignment_response):
 
         def mocked_post(url, *args, **kwargs):
             if "/login/canvas" in url:
                 return canvas_ok_response
+            elif "/assignments" in url:
+                return canvas_create_assignment_response
             else:
                 raise NotImplementedError
 
@@ -622,4 +627,22 @@ class BaseTest(DbTest, FileFixtures, BrokerTest):
         mock_response.json.return_value = (
             sample_data.canvas_get_assignment_groups_response
         )
+        return mock_response
+
+    @pytest.fixture
+    def canvas_assignment_secure_params_response(self):
+        mock_response = AsyncMock()
+        mock_response.__aenter__.return_value = mock_response
+        mock_response.__aexit__.return_value = None
+        mock_response.text.return_value = (
+            sample_data.canvas_assignment_secure_params_response
+        )
+        return mock_response
+
+    @pytest.fixture
+    def canvas_create_assignment_response(self):
+        mock_response = AsyncMock()
+        mock_response.__aenter__.return_value = mock_response
+        mock_response.__aexit__.return_value = None
+        mock_response.json.return_value = sample_data.canvas_create_assignment_response
         return mock_response

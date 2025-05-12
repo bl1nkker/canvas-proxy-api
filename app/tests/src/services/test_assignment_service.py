@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from src.dto import auth_dto
+from src.dto import assignment_dto, auth_dto
 from src.enums.attendance_status import AttendanceStatus
 from src.enums.attendance_value import AttendanceValue
 from src.errors.types import CanvasAPIError, NotFoundError
@@ -10,25 +10,7 @@ from tests.base_test import BaseTest
 from tests.fixtures import sample_data
 
 
-class TestCanvasAssignmentService(BaseTest):
-    @pytest.fixture
-    def canvas_assignment_secure_params_response(self):
-        mock_response = AsyncMock()
-        mock_response.__aenter__.return_value = mock_response
-        mock_response.__aexit__.return_value = None
-        mock_response.text.return_value = (
-            sample_data.canvas_assignment_secure_params_response
-        )
-        return mock_response
-
-    @pytest.fixture
-    def canvas_assignment_response(self):
-        mock_response = AsyncMock()
-        mock_response.__aenter__.return_value = mock_response
-        mock_response.__aexit__.return_value = None
-        mock_response.json.return_value = sample_data.canvas_create_assignment_response
-        return mock_response
-
+class TestAssignmentService(BaseTest):
     @pytest.fixture
     def canvas_assignment_groups_empty_response(self):
         mock_response = AsyncMock()
@@ -38,30 +20,25 @@ class TestCanvasAssignmentService(BaseTest):
         return mock_response
 
     @pytest.mark.asyncio
-    @patch("aiohttp.ClientSession.get")
-    @patch("aiohttp.ClientSession.post")
     async def test_create_assignment(
         self,
-        mock_post,
-        mock_get,
-        canvas_assignment_service,
+        mock_aiohttp_get,
+        mock_aiohttp_post,
+        assignment_service,
         create_canvas_user,
         create_canvas_course,
         assignment_repo,
-        canvas_assignment_secure_params_response,
-        canvas_assignment_response,
         create_assignment_group,
         cleanup_all,
     ):
-        mock_get.return_value = canvas_assignment_secure_params_response
-        mock_post.return_value = canvas_assignment_response
         canvas_user = create_canvas_user(username="user")
         course = create_canvas_course(canvas_user=canvas_user)
         assignment_group = create_assignment_group(course=course, name="Test Group")
         canvas_auth_data = auth_dto.CanvasAuthData(**sample_data.canvas_auth_data)
-        assignment = await canvas_assignment_service.create_assignment(
-            web_id=course.web_id,
-            assignment_group_web_id=assignment_group.web_id,
+        assignment = await assignment_service.create_assignment(
+            dto=assignment_dto.Create(
+                course_id=course.id, assignment_group_id=assignment_group.id
+            ),
             canvas_auth_data=canvas_auth_data,
         )
         assert assignment.name == "test from python finally"
@@ -75,25 +52,19 @@ class TestCanvasAssignmentService(BaseTest):
             assert assignments[0].canvas_assignment_id == 73376
 
     @pytest.mark.asyncio
-    @patch("aiohttp.ClientSession.get")
-    @patch("aiohttp.ClientSession.post")
     async def test_create_assignment_should_create_attendance_for_each_enrollment(
         self,
-        mock_post,
-        mock_get,
-        canvas_assignment_service,
+        mock_aiohttp_get,
+        mock_aiohttp_post,
+        assignment_service,
         create_canvas_user,
         create_canvas_course,
         create_student,
         create_enrollment,
         attendance_repo,
-        canvas_assignment_secure_params_response,
-        canvas_assignment_response,
         create_assignment_group,
         cleanup_all,
     ):
-        mock_get.return_value = canvas_assignment_secure_params_response
-        mock_post.return_value = canvas_assignment_response
         canvas_user = create_canvas_user(username="user")
         course = create_canvas_course(canvas_user=canvas_user)
         assignment_group = create_assignment_group(course=course, name="Test Group")
@@ -102,9 +73,10 @@ class TestCanvasAssignmentService(BaseTest):
             create_enrollment(course=course, student=student)
 
         canvas_auth_data = auth_dto.CanvasAuthData(**sample_data.canvas_auth_data)
-        assignment = await canvas_assignment_service.create_assignment(
-            web_id=course.web_id,
-            assignment_group_web_id=assignment_group.web_id,
+        assignment = await assignment_service.create_assignment(
+            dto=assignment_dto.Create(
+                course_id=course.id, assignment_group_id=assignment_group.id
+            ),
             canvas_auth_data=canvas_auth_data,
         )
         with attendance_repo.session():
@@ -118,7 +90,7 @@ class TestCanvasAssignmentService(BaseTest):
     @pytest.mark.asyncio
     async def test_create_assignment_should_raise_on_invalid_course(
         self,
-        canvas_assignment_service,
+        assignment_service,
         create_canvas_user,
         create_canvas_course,
         create_assignment_group,
@@ -129,19 +101,22 @@ class TestCanvasAssignmentService(BaseTest):
         assignment_group = create_assignment_group(course=course, name="Test Group")
         canvas_auth_data = auth_dto.CanvasAuthData(**sample_data.canvas_auth_data)
         with pytest.raises(NotFoundError) as exc:
-            await canvas_assignment_service.create_assignment(
-                web_id="unknown-web-id",
-                assignment_group_web_id=assignment_group.web_id,
-                canvas_auth_data=canvas_auth_data,
+            await assignment_service.create_assignment(
+                assignment=await assignment_service.create_assignment(
+                    dto=assignment_dto.Create(
+                        course_id=999, assignment_group_id=assignment_group.id
+                    ),
+                    canvas_auth_data=canvas_auth_data,
+                )
             )
-        assert exc.value.message == "_err_message_course_not_found:unknown-web-id"
+        assert exc.value.message == "_err_message_course_not_found:999"
 
     @pytest.mark.asyncio
     @patch("aiohttp.ClientSession.get")
     async def test_get_attendance_assignment_group_should_create_assignment_group(
         self,
         mock_get,
-        canvas_assignment_service,
+        assignment_service,
         create_canvas_user,
         create_canvas_course,
         canvas_assignment_groups_response,
@@ -152,7 +127,7 @@ class TestCanvasAssignmentService(BaseTest):
         canvas_user = create_canvas_user(username="user")
         course = create_canvas_course(canvas_user=canvas_user)
         canvas_auth_data = auth_dto.CanvasAuthData(**sample_data.canvas_auth_data)
-        await canvas_assignment_service.get_attendance_assignment_group(
+        await assignment_service.get_attendance_assignment_group(
             web_id=course.web_id, canvas_auth_data=canvas_auth_data
         )
         with assignment_group_repo.session():
@@ -169,7 +144,7 @@ class TestCanvasAssignmentService(BaseTest):
     async def test_get_attendance_assignment_group_should_not_create_assignment_group_when_assignment_group_exists(
         self,
         mock_get,
-        canvas_assignment_service,
+        assignment_service,
         create_canvas_user,
         create_canvas_course,
         canvas_assignment_groups_response,
@@ -190,7 +165,7 @@ class TestCanvasAssignmentService(BaseTest):
             assert len(assignment_groups) == 1
 
         canvas_auth_data = auth_dto.CanvasAuthData(**sample_data.canvas_auth_data)
-        await canvas_assignment_service.get_attendance_assignment_group(
+        await assignment_service.get_attendance_assignment_group(
             web_id=course.web_id, canvas_auth_data=canvas_auth_data
         )
         with assignment_group_repo.session():
@@ -207,7 +182,7 @@ class TestCanvasAssignmentService(BaseTest):
     async def test_get_attendance_assignment_group_should_create_assignments(
         self,
         mock_get,
-        canvas_assignment_service,
+        assignment_service,
         create_canvas_user,
         create_canvas_course,
         canvas_assignment_groups_response,
@@ -218,7 +193,7 @@ class TestCanvasAssignmentService(BaseTest):
         canvas_user = create_canvas_user(username="user")
         course = create_canvas_course(canvas_user=canvas_user)
         canvas_auth_data = auth_dto.CanvasAuthData(**sample_data.canvas_auth_data)
-        await canvas_assignment_service.get_attendance_assignment_group(
+        await assignment_service.get_attendance_assignment_group(
             web_id=course.web_id, canvas_auth_data=canvas_auth_data
         )
         with assignment_repo.session():
@@ -234,7 +209,7 @@ class TestCanvasAssignmentService(BaseTest):
     async def test_get_attendance_assignment_group_should_not_create_assignments_when_assignment_exists(
         self,
         mock_get,
-        canvas_assignment_service,
+        assignment_service,
         create_canvas_user,
         create_canvas_course,
         canvas_assignment_groups_response,
@@ -257,7 +232,7 @@ class TestCanvasAssignmentService(BaseTest):
             canvas_assignment_id=67301,
         )
         canvas_auth_data = auth_dto.CanvasAuthData(**sample_data.canvas_auth_data)
-        await canvas_assignment_service.get_attendance_assignment_group(
+        await assignment_service.get_attendance_assignment_group(
             web_id=course.web_id, canvas_auth_data=canvas_auth_data
         )
         with assignment_repo.session():
@@ -273,7 +248,7 @@ class TestCanvasAssignmentService(BaseTest):
     async def test_get_attendance_assignment_group_should_return_valid_dto(
         self,
         mock_get,
-        canvas_assignment_service,
+        assignment_service,
         create_canvas_user,
         create_canvas_course,
         canvas_assignment_groups_response,
@@ -283,7 +258,7 @@ class TestCanvasAssignmentService(BaseTest):
         canvas_user = create_canvas_user(username="user")
         course = create_canvas_course(canvas_user=canvas_user)
         canvas_auth_data = auth_dto.CanvasAuthData(**sample_data.canvas_auth_data)
-        result = await canvas_assignment_service.get_attendance_assignment_group(
+        result = await assignment_service.get_attendance_assignment_group(
             web_id=course.web_id, canvas_auth_data=canvas_auth_data
         )
         assert result.model_dump() == {
@@ -315,7 +290,7 @@ class TestCanvasAssignmentService(BaseTest):
     async def test_get_attendance_assignment_group_should_raise_when_no_assignment_groups_from_canvas(
         self,
         mock_get,
-        canvas_assignment_service,
+        assignment_service,
         create_canvas_user,
         create_canvas_course,
         canvas_assignment_groups_empty_response,
@@ -326,11 +301,73 @@ class TestCanvasAssignmentService(BaseTest):
         course = create_canvas_course(canvas_user=canvas_user)
         canvas_auth_data = auth_dto.CanvasAuthData(**sample_data.canvas_auth_data)
         with pytest.raises(CanvasAPIError) as exc:
-            await canvas_assignment_service.get_attendance_assignment_group(
+            await assignment_service.get_attendance_assignment_group(
                 web_id=course.web_id, canvas_auth_data=canvas_auth_data
             )
 
         assert (
             exc.value.message
             == "_err_message_no_attendance_assignment_groups_for_this_course:web-id-3"
+        )
+
+    def test_list_assignments(
+        self,
+        create_canvas_user,
+        create_canvas_course,
+        create_assignment,
+        create_assignment_group,
+        assignment_service,
+        cleanup_all,
+    ):
+        canvas_user = create_canvas_user(username="user")
+        course = create_canvas_course(canvas_user=canvas_user)
+        assignment_group = create_assignment_group(course=course, name="Test Group")
+        for i in range(5):
+            create_assignment(
+                assignment_group=assignment_group, name=f"target assignment {i}"
+            )
+        result = assignment_service.list_assignments()
+        assert result.page == 1
+        assert result.page_size == 10
+        assert result.total == 5
+        assert len(result.items) == 5
+
+    def test_list_assignments_filtered_by_assignment_group_id(
+        self,
+        create_canvas_user,
+        create_canvas_course,
+        create_assignment,
+        create_assignment_group,
+        assignment_service,
+        cleanup_all,
+    ):
+        canvas_user = create_canvas_user(username="user")
+        course = create_canvas_course(canvas_user=canvas_user)
+        assignment_group = create_assignment_group(course=course, name="Test Group")
+        another_assignment_group = create_assignment_group(
+            course=course, name="Another Test Group"
+        )
+        for i in range(5):
+            create_assignment(
+                assignment_group=assignment_group, name=f"target assignment {i}"
+            )
+        for i in range(10):
+            create_assignment(
+                assignment_group=another_assignment_group,
+                name=f"another target assignment {i}",
+            )
+        result = assignment_service.list_assignments(
+            filter_params=assignment_dto.FilterParams(
+                assignment_group_id=assignment_group.id
+            )
+        )
+        assert result.page == 1
+        assert result.page_size == 10
+        assert result.total == 5
+        assert len(result.items) == 5
+        assert all(
+            [
+                assignment.assignment_group_id == assignment_group.id
+                for assignment in result.items
+            ]
         )
