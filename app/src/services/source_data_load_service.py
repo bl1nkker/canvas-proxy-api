@@ -1,7 +1,7 @@
 import shortuuid
 import structlog
 
-from src.dto import canvas_assignment_dto, canvas_course_dto, student_dto
+from src.dto import assignment_dto, canvas_course_dto, student_dto
 from src.enums.attendance_status import AttendanceStatus
 from src.errors.types import NotFoundError
 from src.models.assignment import Assignment
@@ -211,7 +211,7 @@ class SourceDataLoadService:
 
     def _create_assignment_group(
         self,
-        canvas_assignment_group: canvas_assignment_dto.AssignmentGroupCanvas,
+        canvas_assignment_group: assignment_dto.AssignmentGroupCanvas,
         course: CanvasCourse,
     ) -> AssignmentGroup:
         with self._assignment_group_repo.session():
@@ -234,7 +234,7 @@ class SourceDataLoadService:
 
     def _create_assignment(
         self,
-        canvas_assignment: canvas_assignment_dto.CanvasRead,
+        canvas_assignment: assignment_dto.CanvasRead,
         assignment_group: AssignmentGroup,
     ) -> Assignment:
         with self._assignment_repo.session():

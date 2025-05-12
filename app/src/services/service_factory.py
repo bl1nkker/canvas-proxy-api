@@ -9,10 +9,10 @@ from src.repositories.file_record_repo import FileRecordRepo
 from src.repositories.student_repo import StudentRepo
 from src.repositories.student_vector_repo import StudentVectorRepo
 from src.repositories.user_repo import UserRepo
+from src.services.assignment_service import AssignmentService
 from src.services.attendance_process_service import AttendanceProcessService
 from src.services.attendance_service import AttendanceService
 from src.services.auth_service import AuthService
-from src.services.canvas_assignment_service import CanvasAssignmentService
 from src.services.canvas_course_service import CanvasCourseService
 from src.services.source_data_load_queue_service import SourceDataLoadQueueService
 from src.services.source_data_load_service import SourceDataLoadService
@@ -94,8 +94,8 @@ class ServiceFactory:
             student_service=self.student_service(db_session=db_session),
         )
 
-    def canvas_assignment_service(self, db_session):
-        return CanvasAssignmentService(
+    def assignment_service(self, db_session):
+        return AssignmentService(
             assignment_group_repo=self.assignment_group_repo(db_session=db_session),
             assignment_repo=self.assignment_repo(db_session=db_session),
             canvas_course_repo=self.canvas_course_repo(db_session=db_session),

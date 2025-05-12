@@ -1,6 +1,7 @@
 import shortuuid
 
-from src.dto import attendance_dto, auth_dto, canvas_assignment_dto
+from db.data_repo import Pagination
+from src.dto import assignment_dto, attendance_dto, auth_dto
 from src.enums.attendance_status import AttendanceStatus
 from src.enums.attendance_value import AttendanceValue
 from src.errors.types import CanvasAPIError, NotFoundError
@@ -13,7 +14,7 @@ from src.repositories.canvas_course_repo import CanvasCourseRepo
 from src.services.attendance_service import AttendanceService
 
 
-class CanvasAssignmentService:
+class AssignmentService:
     def __init__(
         self,
         attendance_service: AttendanceService,
@@ -28,9 +29,16 @@ class CanvasAssignmentService:
         self._assignment_group_repo = assignment_group_repo
         self._attendance_service = attendance_service
 
+    def _set_filter_params(self, query, filter_params: assignment_dto.FilterParams):
+        if filter_params.assignment_group_id:
+            query = self._assignment_repo.filter_by_assignment_group_id(
+                filter_params.assignment_group_id, query=query
+            )
+        return query
+
     async def get_attendance_assignment_group(
         self, web_id: str, canvas_auth_data: auth_dto.CanvasAuthData
-    ) -> canvas_assignment_dto.AssignmentGroupRead:
+    ) -> assignment_dto.AssignmentGroupRead:
         with self._canvas_course_repo.session():
             course = self._canvas_course_repo.get_by_web_id(web_id=web_id)
             if not course:
@@ -72,26 +80,27 @@ class CanvasAssignmentService:
                         canvas_assignment_id=assignment.canvas_assignment_id,
                     )
                     self._assignment_repo.save_or_update(assignment)
-        return canvas_assignment_dto.AssignmentGroupRead.from_dbmodel(assignment_group)
+        return assignment_dto.AssignmentGroupRead.from_dbmodel(assignment_group)
 
     async def create_assignment(
         self,
-        web_id: str,
-        assignment_group_web_id: str,
+        dto: assignment_dto.Create,
         canvas_auth_data: auth_dto.CanvasAuthData,
-    ) -> canvas_assignment_dto.Read:
+    ) -> assignment_dto.Read:
         with self._canvas_course_repo.session():
-            course = self._canvas_course_repo.get_by_web_id(web_id=web_id)
+            course = self._canvas_course_repo.get_by_db_id(db_id=dto.course_id)
             if not course:
-                raise NotFoundError(message=f"_err_message_course_not_found:{web_id}")
+                raise NotFoundError(
+                    message=f"_err_message_course_not_found:{dto.course_id}"
+                )
 
         with self._assignment_group_repo.session():
-            assignment_group = self._assignment_group_repo.get_by_web_id(
-                web_id=assignment_group_web_id
+            assignment_group = self._assignment_group_repo.get_by_db_id(
+                db_id=dto.assignment_group_id
             )
             if not assignment_group:
                 raise NotFoundError(
-                    message=f"_err_message_assignment_group_not_found:{assignment_group_web_id}"
+                    message=f"_err_message_assignment_group_not_found:{dto.assignment_group_id}"
                 )
         canvas_assignment = await self._canvas_proxy_provider.create_assignment(
             canvas_course_id=course.canvas_course_id,
@@ -117,5 +126,30 @@ class CanvasAssignmentService:
                 self._attendance_service.create_attendance(
                     web_id=assignment.web_id, dto=dto
                 )
-            assignment_read = canvas_assignment_dto.Read.from_dbmodel(assignment)
+            assignment_read = assignment_dto.Read.from_dbmodel(assignment)
         return assignment_read
+
+    def list_assignments(
+        self,
+        page=1,
+        page_size=10,
+        order_by="id",
+        asc=True,
+        filter_params: assignment_dto.FilterParams = None,
+    ) -> Pagination[assignment_dto.ListRead]:
+        with self._assignment_repo.session():
+            query = self._assignment_repo.order_by(order_by=order_by, asc=asc)
+            if filter_params is not None:
+                query = self._set_filter_params(query, filter_params)
+            assignments = self._assignment_repo.list_paged(
+                page=page, page_size=page_size, query=query
+            )
+        return Pagination(
+            page=assignments.page,
+            page_size=assignments.page_size,
+            total=assignments.total,
+            items=[
+                assignment_dto.ListRead.from_dbmodel(assignments)
+                for assignments in assignments.items
+            ],
+        )

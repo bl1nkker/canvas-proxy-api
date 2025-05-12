@@ -1,8 +1,8 @@
 from app_config import get_app_config
 from src.dto import (
+    assignment_dto,
     attendance_dto,
     auth_dto,
-    canvas_assignment_dto,
     canvas_course_dto,
     student_dto,
 )
@@ -35,7 +35,7 @@ class CanvasProxyProvider:
 
     async def get_attendance_assignment_group(
         self, canvas_course_id: int, cookies: auth_dto.CanvasAuthData
-    ) -> canvas_assignment_dto.AssignmentGroupCanvas:
+    ) -> assignment_dto.AssignmentGroupCanvas:
         return await self._proxy.get_attendance_assignment_group(
             cookies=cookies.model_dump(by_alias=True), canvas_course_id=canvas_course_id
         )
