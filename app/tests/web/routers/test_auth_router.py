@@ -28,7 +28,7 @@ class TestAuthRouter(BaseTest, WebApplicationTest):
         mock_post.return_value = canvas_ok_response
         create_canvas_user(username="test@gmail.com", password="test-pwd")
         dto = auth_dto.LoginRequest(username="test@gmail.com", password="test-pwd")
-        response = client.post("/api/auth/v1/signin", json=dto.dict())
+        response = client.post("/api/auth/v1/signin", json=dto.model_dump())
         assert response.status_code == 200
 
         data = response.json()
