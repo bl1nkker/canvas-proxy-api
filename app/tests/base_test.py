@@ -36,6 +36,7 @@ from src.services.attendance_process_service import AttendanceProcessService
 from src.services.attendance_service import AttendanceService
 from src.services.auth_service import AuthService
 from src.services.canvas_course_service import CanvasCourseService
+from src.services.recognition_history_service import RecognitionHistoryService
 from src.services.source_data_load_queue_service import SourceDataLoadQueueService
 from src.services.source_data_load_service import SourceDataLoadService
 from src.services.student_service import StudentService
@@ -105,8 +106,14 @@ class BaseTest(DbTest, FileFixtures, BrokerTest):
         return RecognitionHistoryRepo(db_session)
 
     @pytest.fixture
-    def source_data_load_queue_service(self, db_session, broker_client):
+    def source_data_load_queue_service(self, broker_client):
         return SourceDataLoadQueueService(redis_client=broker_client)
+
+    @pytest.fixture
+    def recognition_history_service(self, recognition_history_repo):
+        return RecognitionHistoryService(
+            recognition_history_repo=recognition_history_repo
+        )
 
     @pytest.fixture
     def auth_service(self, user_repo, canvas_user_repo, source_data_load_queue_service):
