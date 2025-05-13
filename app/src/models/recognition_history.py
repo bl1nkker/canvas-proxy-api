@@ -1,6 +1,6 @@
 from typing import Optional
 
-from sqlalchemy import JSON, BigInteger, Column, ForeignKey, Integer
+from sqlalchemy import JSON, BigInteger, Column, ForeignKey
 from sqlalchemy.orm import relationship
 
 from db import DbModel, HasWebId
@@ -12,9 +12,6 @@ class RecognitionHistory(Base, DbModel, HasWebId):
     __tablename__ = "recognition_history"
     student_id = Column(BigInteger, ForeignKey("app.students.id"), nullable=True)
     student = relationship("Student", foreign_keys=[student_id])
-
-    assignment_id = Column(Integer, ForeignKey("app.assignments.id"), nullable=False)
-    assignment = relationship("Assignment")
 
     image_file_json = Column(JSON(none_as_null=True), nullable=True)
     recognition_details_json = Column(JSON(none_as_null=True), nullable=True)

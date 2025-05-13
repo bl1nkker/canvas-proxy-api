@@ -15,16 +15,14 @@ class RecognitionDetails(BaseModel):
 
 
 class Create(BaseModel):
-    student_id: int
-    assignment_id: int
+    student_id: Optional[int]
     image_file: Optional[file_record_dto.Metadata]
     recognition_details: Optional[RecognitionDetails]
 
 
 class Read(BaseModel):
     web_id: str
-    student_id: int
-    assignment_id: int
+    student_id: Optional[int]
     image_file: Optional[file_record_dto.Metadata]
     recognition_details: Optional[RecognitionDetails]
 
@@ -32,7 +30,6 @@ class Read(BaseModel):
     def from_dbmodel(cls, dbmodel):
         return cls(
             web_id=dbmodel.web_id,
-            assignment_id=dbmodel.assignment_id,
             student_id=dbmodel.student_id,
             image_file=dbmodel.image_file_json,
             recognition_details=dbmodel.recognition_details_json,
