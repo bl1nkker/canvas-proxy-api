@@ -54,6 +54,8 @@ def search_and_mark_attendance_by_student_image(
     result = service.mark_attendance_by_image(
         dto=attendance_dto.Search(course_id=course_id, assignment_id=assignment_id),
         stream=file.file,
+        name=file.filename,
+        content_type=file.content_type,
     )
     return JSONResponse(
         status_code=status.HTTP_201_CREATED, content=jsonable_encoder(result)

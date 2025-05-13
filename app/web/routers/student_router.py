@@ -103,6 +103,8 @@ async def search_student_by_image(
     file: Annotated[UploadFile, File(...)],
 ):
     dto = service.search_student_by_image(
+        name=file.filename,
+        content_type=file.content_type,
         stream=file.file,
         course_web_id=course_web_id,
     )

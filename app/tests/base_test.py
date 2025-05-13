@@ -16,6 +16,7 @@ from src.models.assignment_group import AssignmentGroup
 from src.models.attendance import Attendance
 from src.models.canvas_course import CanvasCourse
 from src.models.enrollment import Enrollment
+from src.models.recognition_history import RecognitionHistory
 from src.models.student import Student
 from src.models.student_vector import StudentVector
 from src.repositories.assignment_group_repo import AssignmentGroupRepo
@@ -26,6 +27,7 @@ from src.repositories.canvas_user_repo import CanvasUserRepo
 from src.repositories.enrollment_repo import EnrollmentRepo
 from src.repositories.file_fs_repo import FileFsRepo
 from src.repositories.file_record_repo import FileRecordRepo
+from src.repositories.recognition_history_repo import RecognitionHistoryRepo
 from src.repositories.student_repo import StudentRepo
 from src.repositories.student_vector_repo import StudentVectorRepo
 from src.repositories.user_repo import UserRepo
@@ -34,6 +36,7 @@ from src.services.attendance_process_service import AttendanceProcessService
 from src.services.attendance_service import AttendanceService
 from src.services.auth_service import AuthService
 from src.services.canvas_course_service import CanvasCourseService
+from src.services.recognition_history_service import RecognitionHistoryService
 from src.services.source_data_load_queue_service import SourceDataLoadQueueService
 from src.services.source_data_load_service import SourceDataLoadService
 from src.services.student_service import StudentService
@@ -99,8 +102,18 @@ class BaseTest(DbTest, FileFixtures, BrokerTest):
         return StudentVectorRepo(db_session)
 
     @pytest.fixture
-    def source_data_load_queue_service(self, db_session, broker_client):
+    def recognition_history_repo(self, db_session):
+        return RecognitionHistoryRepo(db_session)
+
+    @pytest.fixture
+    def source_data_load_queue_service(self, broker_client):
         return SourceDataLoadQueueService(redis_client=broker_client)
+
+    @pytest.fixture
+    def recognition_history_service(self, recognition_history_repo):
+        return RecognitionHistoryService(
+            recognition_history_repo=recognition_history_repo
+        )
 
     @pytest.fixture
     def auth_service(self, user_repo, canvas_user_repo, source_data_load_queue_service):
@@ -118,6 +131,7 @@ class BaseTest(DbTest, FileFixtures, BrokerTest):
         canvas_course_repo,
         student_vector_repo,
         upload_service,
+        recognition_history_service,
     ):
         return StudentService(
             student_repo=student_repo,
@@ -125,6 +139,7 @@ class BaseTest(DbTest, FileFixtures, BrokerTest):
             canvas_course_repo=canvas_course_repo,
             student_vector_repo=student_vector_repo,
             upload_service=upload_service,
+            recognition_history_service=recognition_history_service,
         )
 
     @pytest.fixture
@@ -237,6 +252,7 @@ class BaseTest(DbTest, FileFixtures, BrokerTest):
         models = [
             Enrollment,
             Attendance,
+            RecognitionHistory,
             Assignment,
             AssignmentGroup,
             StudentVector,
@@ -428,6 +444,43 @@ class BaseTest(DbTest, FileFixtures, BrokerTest):
             vector = sample_student_vector(student=student, embedding=embedding)
             with student_vector_repo.session():
                 vector = student_vector_repo.save_or_update(vector)
+            return vector
+
+        return _gen
+
+    @pytest.fixture
+    def sample_recognition_history(self, patch_shortuuid):
+        def _gen(
+            student,
+            image_file_json=None,
+            recognition_details_json=None,
+        ):
+            student = RecognitionHistory(
+                web_id=shortuuid.uuid(),
+                student_id=student.id,
+                image_file_json=image_file_json,
+                recognition_details_json=recognition_details_json,
+            )
+            return student
+
+        return _gen
+
+    @pytest.fixture
+    def create_recognition_history(
+        self, sample_recognition_history, recognition_history_repo
+    ) -> CanvasCourse:
+        def _gen(
+            student,
+            image_file_json=None,
+            recognition_details_json=None,
+        ):
+            vector = sample_recognition_history(
+                student=student,
+                image_file_json=image_file_json,
+                recognition_details_json=recognition_details_json,
+            )
+            with recognition_history_repo.session():
+                vector = recognition_history_repo.save_or_update(vector)
             return vector
 
         return _gen

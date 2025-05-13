@@ -101,7 +101,11 @@ class AttendanceService:
         return attendance_dto.Read.from_dbmodel(attendance)
 
     def mark_attendance_by_image(
-        self, dto: attendance_dto.Search, stream: io.BufferedReader
+        self,
+        dto: attendance_dto.Search,
+        name: str,
+        content_type: str,
+        stream: io.BufferedReader,
     ):
         # Get student
         with self._canvas_course_repo.session():
@@ -109,7 +113,10 @@ class AttendanceService:
             if not course:
                 raise NotFoundError(f"_error_msg_course_not_found: {dto.course_id}")
         student = self._student_service.search_student_by_image(
-            course_web_id=course.web_id, stream=stream
+            course_web_id=course.web_id,
+            stream=stream,
+            name=name,
+            content_type=content_type,
         )
         # Check if attendance exists. Create if not
         with self._attendance_repo.session():
