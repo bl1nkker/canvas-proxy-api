@@ -131,6 +131,7 @@ class BaseTest(DbTest, FileFixtures, BrokerTest):
         canvas_course_repo,
         student_vector_repo,
         upload_service,
+        recognition_history_service,
     ):
         return StudentService(
             student_repo=student_repo,
@@ -138,6 +139,7 @@ class BaseTest(DbTest, FileFixtures, BrokerTest):
             canvas_course_repo=canvas_course_repo,
             student_vector_repo=student_vector_repo,
             upload_service=upload_service,
+            recognition_history_service=recognition_history_service,
         )
 
     @pytest.fixture
@@ -450,14 +452,12 @@ class BaseTest(DbTest, FileFixtures, BrokerTest):
     def sample_recognition_history(self, patch_shortuuid):
         def _gen(
             student,
-            assignment,
             image_file_json=None,
             recognition_details_json=None,
         ):
             student = RecognitionHistory(
                 web_id=shortuuid.uuid(),
                 student_id=student.id,
-                assignment_id=assignment.id,
                 image_file_json=image_file_json,
                 recognition_details_json=recognition_details_json,
             )
@@ -471,13 +471,11 @@ class BaseTest(DbTest, FileFixtures, BrokerTest):
     ) -> CanvasCourse:
         def _gen(
             student,
-            assignment,
             image_file_json=None,
             recognition_details_json=None,
         ):
             vector = sample_recognition_history(
                 student=student,
-                assignment=assignment,
                 image_file_json=image_file_json,
                 recognition_details_json=recognition_details_json,
             )

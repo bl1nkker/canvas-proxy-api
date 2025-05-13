@@ -6,25 +6,14 @@ class TestRecognitionHistoryRepo(BaseTest):
     def test_create(
         self,
         recognition_history_repo,
-        create_canvas_user,
-        create_canvas_course,
-        create_assignment_group,
-        create_assignment,
         create_student,
         cleanup_all,
     ):
         student = create_student()
-        canvas_user = create_canvas_user(username="user")
-        course = create_canvas_course(canvas_user=canvas_user)
-        assignment_group = create_assignment_group(course=course, name="Test Group")
-        assignment = create_assignment(
-            assignment_group=assignment_group, name="target assignment"
-        )
         with recognition_history_repo.session():
             recognition_history = RecognitionHistory(
                 web_id="web-id-1",
                 student_id=student.id,
-                assignment_id=assignment.id,
                 image_file_json={
                     "name": "test",
                     "size": 1024,
@@ -38,7 +27,6 @@ class TestRecognitionHistoryRepo(BaseTest):
             hists = recognition_history_repo.list_all()
             assert len(hists) == 1
             assert hists[0].student_id == student.id
-            assert hists[0].assignment_id == assignment.id
             assert hists[0].image_file_json == {
                 "name": "test",
                 "size": 1024,
@@ -50,24 +38,12 @@ class TestRecognitionHistoryRepo(BaseTest):
     def test_get_by_db_id(
         self,
         recognition_history_repo,
-        create_canvas_user,
-        create_canvas_course,
-        create_assignment_group,
-        create_assignment,
         create_student,
         create_recognition_history,
         cleanup_all,
     ):
         student = create_student()
-        canvas_user = create_canvas_user(username="user")
-        course = create_canvas_course(canvas_user=canvas_user)
-        assignment_group = create_assignment_group(course=course, name="Test Group")
-        assignment = create_assignment(
-            assignment_group=assignment_group, name="target assignment"
-        )
-        recognition_history = create_recognition_history(
-            student=student, assignment=assignment
-        )
+        recognition_history = create_recognition_history(student=student)
         with recognition_history_repo.session():
             history = recognition_history_repo.get_by_db_id(
                 db_id=recognition_history.id
@@ -77,35 +53,18 @@ class TestRecognitionHistoryRepo(BaseTest):
     def test_update(
         self,
         recognition_history_repo,
-        create_canvas_user,
-        create_canvas_course,
-        create_assignment_group,
-        create_assignment,
         create_student,
         create_recognition_history,
         cleanup_all,
     ):
         student = create_student()
-
-        canvas_user = create_canvas_user(username="user")
-        course = create_canvas_course(canvas_user=canvas_user)
-        assignment_group = create_assignment_group(course=course, name="Test Group")
-        assignment = create_assignment(
-            assignment_group=assignment_group, name="target assignment"
-        )
-        recognition_history = create_recognition_history(
-            student=student, assignment=assignment
-        )
+        recognition_history = create_recognition_history(student=student)
         with recognition_history_repo.session():
             another_student = create_student(canvas_user_id=2)
-            another_assignment = create_assignment(
-                assignment_group=assignment_group, name="target assignment"
-            )
             history = recognition_history_repo.get_by_db_id(
                 db_id=recognition_history.id
             )
             history.student_id = another_student.id
-            history.assignment_id = another_assignment.id
             history.image_file_json = {
                 "name": "test",
                 "size": 1024,
@@ -119,7 +78,6 @@ class TestRecognitionHistoryRepo(BaseTest):
             hists = recognition_history_repo.list_all()
             assert len(hists) == 1
             assert hists[0].student_id == another_student.id
-            assert hists[0].assignment_id == another_assignment.id
             assert hists[0].image_file_json == {
                 "name": "test",
                 "size": 1024,
@@ -131,24 +89,12 @@ class TestRecognitionHistoryRepo(BaseTest):
     def test_delete(
         self,
         recognition_history_repo,
-        create_canvas_user,
-        create_canvas_course,
-        create_assignment_group,
-        create_assignment,
         create_student,
         create_recognition_history,
         cleanup_all,
     ):
         student = create_student()
-        canvas_user = create_canvas_user(username="user")
-        course = create_canvas_course(canvas_user=canvas_user)
-        assignment_group = create_assignment_group(course=course, name="Test Group")
-        assignment = create_assignment(
-            assignment_group=assignment_group, name="target assignment"
-        )
-        recognition_history = create_recognition_history(
-            student=student, assignment=assignment
-        )
+        recognition_history = create_recognition_history(student=student)
         with recognition_history_repo.session():
             recognition_history_repo.delete(recognition_history)
 

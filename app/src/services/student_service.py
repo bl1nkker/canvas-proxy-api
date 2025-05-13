@@ -1,4 +1,5 @@
 import io
+from timeit import default_timer as timer
 
 import numpy as np
 import pandas as pd
@@ -6,7 +7,7 @@ import shortuuid
 
 from db.data_repo import Pagination
 from ml.service import MlService, RepresentResult
-from src.dto import enrollment_dto, student_dto
+from src.dto import enrollment_dto, recognition_history_dto, student_dto
 from src.errors.types import InvalidDataError, NotFoundError
 from src.errors.utils import write_to_temp_file
 from src.models.enrollment import Enrollment
@@ -17,6 +18,7 @@ from src.repositories.canvas_course_repo import CanvasCourseRepo
 from src.repositories.enrollment_repo import EnrollmentRepo
 from src.repositories.student_repo import StudentRepo
 from src.repositories.student_vector_repo import StudentVectorRepo
+from src.services.recognition_history_service import RecognitionHistoryService
 from src.services.upload_service import UploadService
 
 
@@ -29,6 +31,7 @@ class StudentService:
         canvas_course_repo: CanvasCourseRepo,
         student_vector_repo: StudentVectorRepo,
         upload_service: UploadService,
+        recognition_history_service: RecognitionHistoryService,
         canvas_proxy_provider=CanvasProxyProvider,
         ml_service=MlService,
     ):
@@ -37,6 +40,7 @@ class StudentService:
         self._upload_service = upload_service
         self._canvas_course_repo = canvas_course_repo
         self._enrollment_repo = enrollment_repo
+        self._recognition_history_service = recognition_history_service
         self._canvas_proxy_provider = canvas_proxy_provider()
         self._ml_service = ml_service()
 
@@ -103,9 +107,12 @@ class StudentService:
     # TODO: Add tests
     def search_student_by_image(
         self,
-        course_web_id: str | None,
+        course_web_id: str,
+        name: str,
+        content_type: str,
         stream: io.BufferedReader,
     ) -> student_dto.Read:
+        start_time = timer()
         with self._canvas_course_repo.session():
             course = self._canvas_course_repo.get_by_web_id(web_id=course_web_id)
             if not course:
@@ -121,6 +128,17 @@ class StudentService:
             result = self._get_image_embedding(stream=stream)
             image = self._student_vector_repo.search_course_students_by_embedding(
                 embedding=result.embedding, student_ids=student_ids
+            )
+            end_time = timer()
+            recognition_details = recognition_history_dto.RecognitionDetails(
+                duration=round(end_time - start_time, 2)
+            )
+            self._create_recognition_history_record(
+                student_id=image.student.id if image else None,
+                name=name,
+                stream=stream,
+                content_type=content_type,
+                recognition_details=recognition_details,
             )
             if not image:
                 raise NotFoundError(message="_error_msg_student_not_found")
@@ -236,3 +254,22 @@ class StudentService:
         with write_to_temp_file(stream=stream) as file_path:
             preprocessed_path = self._ml_service.preprocess_image(file_path=file_path)
             return self._ml_service.represent(image_path=preprocessed_path)
+
+    def _create_recognition_history_record(
+        self,
+        name: str,
+        content_type: str,
+        stream: io.BufferedReader,
+        recognition_details: recognition_history_dto.RecognitionDetails,
+        student_id: int = None,
+    ):
+        upload = self._upload_service.create_upload(
+            name=name, content_type=content_type, stream=stream
+        )
+        self._recognition_history_service.create_recognition_history(
+            dto=recognition_history_dto.Create(
+                student_id=student_id,
+                image_file=upload,
+                recognition_details=recognition_details,
+            )
+        )

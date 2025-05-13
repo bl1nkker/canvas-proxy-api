@@ -208,7 +208,7 @@ class TestAttendanceService(BaseTest):
         )
         # Get student by image
         result = attendance_service.mark_attendance_by_image(
-            dto=dto, stream=sample_jpg_file
+            dto=dto, stream=sample_jpg_file, name="test.jpeg", content_type="image/jpeg"
         )
         assert result is not None
         assert result.status is AttendanceStatus.COMPLETED
@@ -270,7 +270,7 @@ class TestAttendanceService(BaseTest):
         )
         # Get student by image
         result = attendance_service.mark_attendance_by_image(
-            dto=dto, stream=sample_jpg_file
+            dto=dto, stream=sample_jpg_file, name="test.jpeg", content_type="image/jpeg"
         )
         assert result is not None
         assert result.status is AttendanceStatus.IN_PROGRESS
@@ -326,7 +326,7 @@ class TestAttendanceService(BaseTest):
         )
         # Get student by image
         result = attendance_service.mark_attendance_by_image(
-            dto=dto, stream=sample_jpg_file
+            dto=dto, stream=sample_jpg_file, name="test.jpeg", content_type="image/jpeg"
         )
         assert result is not None
         assert result.status is AttendanceStatus.COMPLETED
@@ -388,5 +388,10 @@ class TestAttendanceService(BaseTest):
         )
         # Get student by image
         with pytest.raises(NotFoundError) as exc:
-            attendance_service.mark_attendance_by_image(dto=dto, stream=sample_jpg_file)
+            attendance_service.mark_attendance_by_image(
+                dto=dto,
+                stream=sample_jpg_file,
+                name="test.jpeg",
+                content_type="image/jpeg",
+            )
         assert exc.value.message == "_error_msg_course_not_found: 999"
